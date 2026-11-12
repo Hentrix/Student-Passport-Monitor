@@ -242,6 +242,16 @@
       <Setter Property="CalendarItemStyle" Value="{StaticResource DarkCalendarItem}"/>
       <Setter Property="CalendarDayButtonStyle" Value="{StaticResource DarkCalendarDayButton}"/>
       <Setter Property="CalendarButtonStyle" Value="{StaticResource DarkCalendarButton}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Calendar">
+            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+              <CalendarItem x:Name="PART_CalendarItem" Style="{StaticResource DarkCalendarItem}"
+                            Background="{StaticResource PanelBrush}" Foreground="{StaticResource TextBrush}"/>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
