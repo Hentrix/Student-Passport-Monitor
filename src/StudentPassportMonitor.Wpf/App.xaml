@@ -119,7 +119,7 @@
     <!-- Стандартный Calendar сохраняет корректную навигацию по годам и месяцам.
          Пока его системный светлый шаблон оставлен с контрастным тёмным текстом. -->
     <!-- Собственные кнопки дней и месяцев не используют системные светлые шаблоны. -->
-    <Style TargetType="CalendarDayButton">
+    <Style x:Key="DarkCalendarDayButton" TargetType="CalendarDayButton">
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
       <Setter Property="MinWidth" Value="29"/>
@@ -155,7 +155,7 @@
         </Setter.Value>
       </Setter>
     </Style>
-    <Style TargetType="CalendarButton">
+    <Style x:Key="DarkCalendarButton" TargetType="CalendarButton">
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
       <Setter Property="Template">
@@ -182,7 +182,7 @@
     </Style>
     <!-- CalendarItem определяет реальный фон, заголовок и сетку дней.
          Без этого шаблона стандартная тема Windows оставляет белую подложку. -->
-    <Style TargetType="CalendarItem">
+    <Style x:Key="DarkCalendarItem" TargetType="CalendarItem">
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="Template">
@@ -239,6 +239,9 @@
       </Setter>
     </Style>
     <Style TargetType="Calendar">
+      <Setter Property="CalendarItemStyle" Value="{StaticResource DarkCalendarItem}"/>
+      <Setter Property="CalendarDayButtonStyle" Value="{StaticResource DarkCalendarDayButton}"/>
+      <Setter Property="CalendarButtonStyle" Value="{StaticResource DarkCalendarButton}"/>
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
