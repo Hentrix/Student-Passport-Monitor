@@ -102,7 +102,7 @@ partial class MainForm
         colDue = new DataGridViewTextBoxColumn();
         colState = new DataGridViewTextBoxColumn();
         tabs.Dock = DockStyle.Fill;
-        tabs.Padding = new Padding(16, 6, 16, 6);
+        tabs.Padding = new Point(16, 6);
         tabDashboard.Text = "Обзор";
         tabDashboard.BackColor = Color.White;
         tabDashboard.UseVisualStyleBackColor = false;
