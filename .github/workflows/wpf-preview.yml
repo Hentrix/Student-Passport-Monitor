@@ -1,25 +1,18 @@
 name: Проверка WPF 2.0
 
+# Проверки запускаются при PR и вручную, а не на каждый коммит в dev.
 on:
-  push:
-    branches: ['dev/v2.0.0']
+  pull_request:
+    branches: ['dev/v2.0.0', main]
     paths:
       - 'src/**'
       - 'Core/**'
       - 'Models/**'
       - 'Services/**'
-      - 'StudentPassportMonitor.csproj'
       - 'Directory.Build.props'
       - 'assets/**'
       - 'scripts/**'
-      - '.github/workflows/wpf-preview.yml'
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'Core/**'
-      - 'Models/**'
-      - 'Services/**'
-      - 'Directory.Build.props'
+      - 'tests/**'
       - '.github/workflows/wpf-preview.yml'
   workflow_dispatch:
 
