@@ -8,18 +8,13 @@ on:
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
-<<<<<<< HEAD
       - '.editorconfig'
 
-=======
-      - '.gitignore'
->>>>>>> 078277ceba493a7bcf33d2a24d1e674e807cf58c
   pull_request:
     branches: [main]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
-<<<<<<< HEAD
       - '.editorconfig'
 
   workflow_dispatch:
@@ -27,15 +22,6 @@ on:
 # Отменяем устаревшие проверки, но не релизные сборки.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-=======
-      - '.gitignore'
-  workflow_dispatch:
-
-# Для веток и PR оставляем только последнюю сборку.
-# Релизы по тегам не отменяются новыми коммитами.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
->>>>>>> 078277ceba493a7bcf33d2a24d1e674e807cf58c
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 permissions:
@@ -52,32 +38,15 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-<<<<<<< HEAD
 
       - name: Запустить тесты
-=======
-      - name: Кэш пакетов NuGet
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-linux-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
-          restore-keys: |
-            nuget-linux-
-      - name: Run unit tests
->>>>>>> 078277ceba493a7bcf33d2a24d1e674e807cf58c
         run: dotnet test tests/StudentPassportMonitor.Tests/StudentPassportMonitor.Tests.csproj --configuration Release
 
   build:
     name: Сборка Windows
     runs-on: windows-latest
     needs: test
-<<<<<<< HEAD
 
-=======
-    # На обычных коммитах и PR достаточно тестов.
-    # Установщик собирается только для тега или ручного запуска.
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
->>>>>>> 078277ceba493a7bcf33d2a24d1e674e807cf58c
     steps:
       - uses: actions/checkout@v4
 
@@ -96,7 +65,6 @@ jobs:
           if ($version -cnotmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$') {
             throw "Неверный формат версии: $version"
           }
-<<<<<<< HEAD
 
           if ($tag -cne "v$version") {
             throw "Тег $tag не соответствует версии $version"
@@ -108,16 +76,6 @@ jobs:
       # Публикация и установщик нужны только для релиза.
       - name: Опубликовать автономную сборку
         if: startsWith(github.ref, 'refs/tags/v')
-=======
-      - name: Кэш пакетов NuGet
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-windows-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
-          restore-keys: |
-            nuget-windows-
-      - name: Publish self-contained win-x64
->>>>>>> 078277ceba493a7bcf33d2a24d1e674e807cf58c
         shell: pwsh
         run: |
           dotnet publish StudentPassportMonitor.csproj `
