@@ -98,6 +98,15 @@ public sealed class StudentMonitorController
             .ToArray();
     }
 
+    public int ExportReport(string path, ExcelReportType type, string? group = null)
+    {
+        if (type == ExcelReportType.ByGroup && string.IsNullOrWhiteSpace(group))
+            throw new ArgumentException("Выберите группу для отчёта.");
+
+        IReadOnlyList<StudentRow> rows = GetRows(DateTime.Today, "", "Все группы");
+        return new ExcelReportService().Export(path, type, rows, group, DateTime.Now);
+    }
+
     public IReadOnlyList<PassportAlert> GetAttention(DateTime today) =>
         _passport.GetAlerts(_students, today, Settings.WarningDays)
             .Where(a => a.Status != PassportAlertState.Planned)
