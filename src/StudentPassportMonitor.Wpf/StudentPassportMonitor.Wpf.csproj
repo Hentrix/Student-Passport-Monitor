@@ -17,7 +17,8 @@
   <ItemGroup>
     <Compile Include="../../Core/**/*.cs" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../../Models/**/*.cs" Link="Models/%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="../../Services/**/*.cs" Link="Services/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../../Services/**/*.cs" Exclude="../../Services/ToastNotificationService.cs" Link="Services/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Using Include="System.IO" />
   </ItemGroup>
   <Target Name="GenerateApplicationIcon" BeforeTargets="PrepareForBuild" Condition="'$(OS)' == 'Windows_NT'">
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\scripts\generate-icon.ps1&quot; -Output &quot;$(MSBuildProjectDirectory)\..\..\assets\student-passport-monitor.ico&quot;" />
