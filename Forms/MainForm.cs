@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Globalization;
 using StudentPassportMonitor.Models;
 using StudentPassportMonitor.Services;
@@ -20,6 +21,9 @@ public partial class MainForm : Form
     public MainForm()
     {
         InitializeComponent();
+        if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            return;
+
         _students = _db.LoadStudents();
         _settings = _db.LoadSettings();
         nudWarningDays.Value = Math.Clamp(_settings.WarningDays, (int)nudWarningDays.Minimum, (int)nudWarningDays.Maximum);
@@ -126,7 +130,7 @@ public partial class MainForm : Form
         }
     }
 
-private void btnSaveSettings_Click(object? sender, EventArgs e)
+    private void btnSaveSettings_Click(object? sender, EventArgs e)
     {
         _settings.WarningDays = (int)nudWarningDays.Value;
         try
