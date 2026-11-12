@@ -10,3 +10,6 @@ students.json
 settings.json
 *.pfx
 *.p12
+
+# Иконка создаётся автоматически перед сборкой Windows.
+/assets/student-passport-monitor.ico
