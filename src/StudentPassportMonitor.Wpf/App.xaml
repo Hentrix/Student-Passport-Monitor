@@ -49,7 +49,7 @@
                        Visibility="Collapsed" Background="Transparent" BorderThickness="0"
                        Padding="5,0" Foreground="{StaticResource TextBrush}"
                        CaretBrush="White" VerticalContentAlignment="Center"/>
-              <ToggleButton x:Name="DropDownButton" Focusable="False"
+              <ToggleButton x:Name="DropDownButton" Focusable="False" HorizontalAlignment="Right" Width="40"
                             Background="Transparent" BorderThickness="0"
                             IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                 <ToggleButton.Template>
@@ -109,7 +109,7 @@
           <ControlTemplate TargetType="DatePickerTextBox">
             <Border Background="{TemplateBinding Background}">
               <Grid>
-                <TextBlock x:Name="PART_Watermark" Text="Выберите дату"
+                <ContentControl x:Name="PART_Watermark"
                            Foreground="{StaticResource MutedBrush}" Margin="12,0"
                            VerticalAlignment="Center" IsHitTestVisible="False"/>
                 <ScrollViewer x:Name="PART_ContentHost" Background="Transparent"/>
