@@ -97,9 +97,11 @@
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="FontSize" Value="14"/>
     </Style>
+    <!-- У DatePickerTextBox не используем системную подсказку:
+         она накладывалась на выбранную дату. -->
     <Style TargetType="DatePickerTextBox">
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-      <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+      <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="CaretBrush" Value="White"/>
       <Setter Property="Padding" Value="12,7"/>
@@ -108,25 +110,22 @@
         <Setter.Value>
           <ControlTemplate TargetType="DatePickerTextBox">
             <Border Background="{TemplateBinding Background}">
-              <Grid>
-                <ContentControl x:Name="PART_Watermark"
-                           Foreground="{StaticResource MutedBrush}" Margin="12,0"
-                           VerticalAlignment="Center" IsHitTestVisible="False"/>
-                <ScrollViewer x:Name="PART_ContentHost" Background="Transparent"/>
-              </Grid>
+              <ScrollViewer x:Name="PART_ContentHost" Background="Transparent"/>
             </Border>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- Стандартный Calendar сохраняет корректную навигацию по годам и месяцам.
+         Пока его системный светлый шаблон оставлен с контрастным тёмным текстом. -->
     <Style TargetType="Calendar">
-      <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
-      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+      <Setter Property="Foreground" Value="#202335"/>
+      <Setter Property="Background" Value="#F5F6FA"/>
+      <Setter Property="BorderBrush" Value="#A4A6B6"/>
     </Style>
     <Style TargetType="CalendarDayButton">
-      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-      <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+      <Setter Property="Foreground" Value="#202335"/>
+      <Setter Property="Background" Value="#F5F6FA"/>
     </Style>
     <Style TargetType="DatePicker">
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -151,11 +150,10 @@
                 <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True"
                        IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                        StaysOpen="False">
-                  <Border Background="{StaticResource PanelBrush}"
-                          BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                          Padding="8" CornerRadius="8">
-                    <Calendar x:Name="PART_Calendar" Background="{StaticResource PanelBrush}"
-                              Foreground="{StaticResource TextBrush}"/>
+                  <Border Background="#F5F6FA" BorderBrush="#A4A6B6"
+                          BorderThickness="1" Padding="8" CornerRadius="8">
+                    <Calendar x:Name="PART_Calendar" Background="#F5F6FA"
+                              Foreground="#202335"/>
                   </Border>
                 </Popup>
               </Grid>
