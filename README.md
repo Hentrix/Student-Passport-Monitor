@@ -40,3 +40,27 @@ This version uses the existing WinForms tray icon to show Windows balloon notifi
 - `settings.json` — warning period, startup option and last check date.
 
 The app never uploads student data to GitHub or any remote service.
+
+
+## Архитектура
+
+- `Forms/MainForm.Designer.cs` — только компоненты и их расположение; редактируется в Visual Studio Designer.
+- `Forms/MainForm.cs` — только отображение, события, диалоги, системный трей и таймер.
+- `Application/StudentMonitorController.cs` — сценарии приложения: импорт, фильтрация, статистика, сохранение, ежедневная проверка.
+- `Models/` — данные студентов и настройки.
+- `Services/` — чтение Excel, хранение JSON, правила возрастных рубежей, объединение списков, автозапуск.
+
+Важное ограничение: контроллер не зависит от WinForms, но пока непосредственно создаётся формой и использует конкретные сервисы. Для независимых модульных тестов следующим шагом можно ввести интерфейсы репозитория, часов и импорта.
+
+### Сборка
+
+Перед `dotnet build` полностью выйдите из приложения через значок в трее: закрытие окна лишь скрывает его. Если исполняемый файл заблокирован, используйте `Stop-Process -Name StudentPassportMonitor -ErrorAction SilentlyContinue`.
+
+```powershell
+dotnet restore
+dotnet build
+```
+
+**Данные:** список студентов и паспортные сведения хранятся локально в `%LOCALAPPDATA%\StudentPassportMonitor`. Не добавляйте их в Git. На рабочих компьютерах используйте защиту диска и ограничение доступа к профилю пользователя.
+
+**Примечание:** возрастные рубежи 20 и 45 лет — повод проверить документ, а не юридическое подтверждение просрочки. Уведомления реализованы через значок в трее, не через Windows Toast.
