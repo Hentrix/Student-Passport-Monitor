@@ -14,6 +14,7 @@ public sealed class JsonDatabaseService
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "StudentPassportMonitor");
 
+    private string BackupsPath => Path.Combine(_directory, "backups");
     private string StudentsPath => Path.Combine(_directory, "students.json");
     private string SettingsPath => Path.Combine(_directory, "settings.json");
 
@@ -24,6 +25,40 @@ public sealed class JsonDatabaseService
 
     public void SaveStudents(IReadOnlyCollection<Student> students) =>
         Write(StudentsPath, students);
+
+    public string CreateBackup()
+    {
+        Directory.CreateDirectory(BackupsPath);
+        string destination = Path.Combine(BackupsPath,
+            $"students-{DateTime.UtcNow:yyyyMMdd-HHmmss-fffffff}.json");
+        if (File.Exists(StudentsPath))
+            File.Copy(StudentsPath, destination);
+        else
+            File.WriteAllText(destination, JsonSerializer.Serialize(new List<Student>(), SerializerOptions));
+        return destination;
+    }
+
+    public void RestoreBackup(string backupPath)
+    {
+        string fullPath = Path.GetFullPath(backupPath);
+        string backupDirectory = Path.GetFullPath(BackupsPath);
+        if (!Path.GetDirectoryName(fullPath)!.Equals(backupDirectory,
+                StringComparison.OrdinalIgnoreCase) ||
+            !File.Exists(fullPath))
+            throw new ArgumentException("Выберите существующую резервную копию приложения.");
+
+        List<Student> restored = Read<List<Student>>(fullPath)
+            ?? throw new InvalidDataException("Резервная копия пуста или повреждена.");
+        CreateBackup();
+        SaveStudents(restored);
+    }
+
+    public IReadOnlyList<string> ListBackups() =>
+        Directory.Exists(BackupsPath)
+            ? Directory.GetFiles(BackupsPath, "students-*.json")
+                .OrderByDescending(x => x).ToArray()
+            : [];
+
 
     public void SaveSettings(AppSettings settings) =>
         Write(SettingsPath, settings);
@@ -47,7 +82,7 @@ public sealed class JsonDatabaseService
     private void Write<T>(string path, T value)
     {
         Directory.CreateDirectory(_directory);
-        string temporaryPath = path + ".tmp";
+        string temporaryPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
 
         try
         {
