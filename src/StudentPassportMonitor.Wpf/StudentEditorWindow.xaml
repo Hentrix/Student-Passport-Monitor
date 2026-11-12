@@ -2,16 +2,16 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:StudentPassportMonitor.Wpf"
-        Title="Карточка студента" Width="600" Height="740" MinHeight="600"
+        Title="Карточка студента" Width="640" Height="760" MinWidth="480" MinHeight="540" UseLayoutRounding="True" SnapsToDevicePixels="True"
         WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBrush}" Foreground="{StaticResource TextBrush}" Language="ru-RU">
-  <DockPanel Margin="25" Background="{StaticResource WindowBrush}">
+  <DockPanel Margin="22" Background="{StaticResource WindowBrush}" LastChildFill="True">
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="0,18,0,0">
       <Button Content="Отмена" Width="110" IsCancel="True"/>
       <Button Content="Сохранить" Width="130" Background="{StaticResource AccentBrush}"
               Click="Save_Click" IsDefault="True"/>
     </StackPanel>
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Background="{StaticResource WindowBrush}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="{StaticResource WindowBrush}" Padding="0,0,12,0">
       <StackPanel>
         <TextBlock Text="Данные студента" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,20"/>
         <TextBlock Text="Фамилия *"/>
