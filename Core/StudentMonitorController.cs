@@ -9,6 +9,13 @@ public sealed record StudentRow(
     string BirthDate, string PassportNumber, string Age, string DueDate,
     string State, PassportAlertState? AlertStatus);
 
+public enum StudentSortOrder
+{
+    Name,
+    DueDateAscending,
+    DueDateDescending
+}
+
 public sealed record DashboardSummary(
     int Total, int Upcoming, int ReviewRequired, DateTime? LastChecked);
 
@@ -50,15 +57,30 @@ public sealed class StudentMonitorController
             Settings.LastDailyCheckDate);
     }
 
-    public IReadOnlyList<StudentRow> GetRows(DateTime today, string search, string group)
+    public IReadOnlyList<StudentRow> GetRows(DateTime today, string search, string group, bool attentionOnly = false, StudentSortOrder sort = StudentSortOrder.Name)
     {
-        return _students
+        var matching = _students
             .Where(s => (string.IsNullOrWhiteSpace(search) ||
                          s.FullName.Contains(search, StringComparison.CurrentCultureIgnoreCase)) &&
                         (group == "Все группы" ||
-                         s.Group.Equals(group, StringComparison.CurrentCultureIgnoreCase)))
-            .OrderBy(s => s.LastName)
-            .ThenBy(s => s.FirstName)
+                         s.Group.Equals(group, StringComparison.CurrentCultureIgnoreCase)));
+
+        if (attentionOnly)
+            matching = matching.Where(s => _passport.GetAlert(s, today, Settings.WarningDays)
+                is { Status: PassportAlertState.Upcoming or PassportAlertState.ReviewRequired });
+
+        IOrderedEnumerable<Student> ordered = sort switch
+        {
+            StudentSortOrder.DueDateAscending => matching
+                .OrderBy(s => _passport.GetAlert(s, today, Settings.WarningDays)?.DueDate ?? DateTime.MaxValue)
+                .ThenBy(s => s.LastName).ThenBy(s => s.FirstName),
+            StudentSortOrder.DueDateDescending => matching
+                .OrderByDescending(s => _passport.GetAlert(s, today, Settings.WarningDays)?.DueDate ?? DateTime.MinValue)
+                .ThenBy(s => s.LastName).ThenBy(s => s.FirstName),
+            _ => matching.OrderBy(s => s.LastName).ThenBy(s => s.FirstName)
+        };
+
+        return ordered
             .Select(s =>
             {
                 var alert = _passport.GetAlert(s, today, Settings.WarningDays);
