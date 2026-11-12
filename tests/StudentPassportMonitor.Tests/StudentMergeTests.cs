@@ -58,6 +58,29 @@ public sealed class StudentMergeTests
     }
 
     [Fact]
+    public void ImportFillsMissingPassportFieldsWithoutErasingKnownValues()
+    {
+        var existing = new Student
+        {
+            LastName = "Петров", FirstName = "Пётр", Group = "ПО-41",
+            PassportNumber = "1234 123456"
+        };
+        var imported = new Student
+        {
+            LastName = "Петров", FirstName = "Пётр", Group = "ПО-41",
+            PassportNumber = "9999 999999", IssuedBy = "МВД России",
+            IssueDate = new DateTime(2026, 1, 15)
+        };
+
+        var merged = new StudentMergeService().Merge([existing], [imported]);
+
+        Assert.Single(merged);
+        Assert.Equal("1234 123456", merged[0].PassportNumber);
+        Assert.Equal("МВД России", merged[0].IssuedBy);
+        Assert.Equal(new DateTime(2026, 1, 15), merged[0].IssueDate);
+    }
+
+    [Fact]
     public void NewStudentIsAppended()
     {
         var result = new StudentMergeService().Merge(
