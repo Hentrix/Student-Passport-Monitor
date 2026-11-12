@@ -233,7 +233,7 @@ public partial class MainForm : Form
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
-        if (MessageBox.Show(this, $"Удалить студента «{student.FullName}»?\\nДействие нельзя отменить.",
+        if (MessageBox.Show(this, $"Удалить студента «{student.FullName}»?\nДействие нельзя отменить.",
                 "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
             != DialogResult.Yes) return;
         try
@@ -257,16 +257,16 @@ public partial class MainForm : Form
         try
         {
             StudentMonitorController.ImportPreview preview = _controller.PreviewImport(dialog.FileName);
-            string examples = string.Join("\\n", preview.Students.Take(3)
+            string examples = string.Join("\n", preview.Students.Take(3)
                 .Select(s => $"• {s.FullName} — {s.Group}"));
             var choice = MessageBox.Show(this,
-                $"Найдено студентов: {preview.Students.Count}\\n" +
-                $"Без даты рождения: {preview.MissingBirthDates}\\n" +
-                $"Без номера паспорта: {preview.MissingPassportNumbers}\\n\\n" +
-                $"Примеры:\\n{examples}\\n\\n" +
-                "Да — ЗАМЕНИТЬ весь список (внесённые вручную сведения могут быть утрачены).\\n" +
-                "Нет — ОБЪЕДИНИТЬ, сохранив имеющиеся данные.\\n" +
-                "Отмена — ничего не изменять.\\n\\n" +
+                $"Найдено студентов: {preview.Students.Count}\n" +
+                $"Без даты рождения: {preview.MissingBirthDates}\n" +
+                $"Без номера паспорта: {preview.MissingPassportNumbers}\n\n" +
+                $"Примеры:\n{examples}\n\n" +
+                "Да — ЗАМЕНИТЬ весь список (внесённые вручную сведения могут быть утрачены).\n" +
+                "Нет — ОБЪЕДИНИТЬ, сохранив имеющиеся данные.\n" +
+                "Отмена — ничего не изменять.\n\n" +
                 "Перед импортом автоматически создаётся резервная копия.",
                 "Предпросмотр импорта Excel", MessageBoxButtons.YesNoCancel,
                 MessageBoxIcon.Question);
@@ -274,7 +274,7 @@ public partial class MainForm : Form
 
             int count = _controller.Import(preview, choice == DialogResult.Yes);
             RefreshView();
-            MessageBox.Show(this, $"Импортировано записей: {count}.\\nРезервная копия создана.",
+            MessageBox.Show(this, $"Импортировано записей: {count}.\nРезервная копия создана.",
                 "Импорт завершён", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex) { ShowError("Ошибка импорта", ex); }
