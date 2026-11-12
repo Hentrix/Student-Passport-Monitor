@@ -254,19 +254,77 @@ public partial class MainForm : Form
         };
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
 
-        var choice = MessageBox.Show(this,
-            "Да — заменить текущий список.\nНет — объединить с текущим списком.",
-            "Импорт Excel", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-        if (choice == DialogResult.Cancel) return;
-
         try
         {
-            int count = _controller.Import(dialog.FileName, choice == DialogResult.Yes);
+            StudentMonitorController.ImportPreview preview = _controller.PreviewImport(dialog.FileName);
+            string examples = string.Join("\\n", preview.Students.Take(3)
+                .Select(s => $"• {s.FullName} — {s.Group}"));
+            var choice = MessageBox.Show(this,
+                $"Найдено студентов: {preview.Students.Count}\\n" +
+                $"Без даты рождения: {preview.MissingBirthDates}\\n" +
+                $"Без номера паспорта: {preview.MissingPassportNumbers}\\n\\n" +
+                $"Примеры:\\n{examples}\\n\\n" +
+                "Да — ЗАМЕНИТЬ весь список (внесённые вручную сведения могут быть утрачены).\\n" +
+                "Нет — ОБЪЕДИНИТЬ, сохранив имеющиеся данные.\\n" +
+                "Отмена — ничего не изменять.\\n\\n" +
+                "Перед импортом автоматически создаётся резервная копия.",
+                "Предпросмотр импорта Excel", MessageBoxButtons.YesNoCancel,
+                MessageBoxIcon.Question);
+            if (choice == DialogResult.Cancel) return;
+
+            int count = _controller.Import(preview, choice == DialogResult.Yes);
             RefreshView();
-            MessageBox.Show(this, $"Обработано записей: {count}.",
+            MessageBox.Show(this, $"Импортировано записей: {count}.\\nРезервная копия создана.",
                 "Импорт завершён", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex) { ShowError("Ошибка импорта", ex); }
+    }
+
+    private void btnRestoreBackup_Click(object? sender, EventArgs e)
+    {
+        if (_controller is null) return;
+        try
+        {
+            var backups = _controller.ListBackups();
+            if (backups.Count == 0)
+            {
+                MessageBox.Show(this, "Резервных копий пока нет.", "Восстановление",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var picker = new Form
+            {
+                Text = "Выбор резервной копии",
+                StartPosition = FormStartPosition.CenterParent,
+                Size = new Size(600, 350),
+                MinimumSize = new Size(450, 280)
+            };
+            var list = new ListBox { Dock = DockStyle.Fill };
+            foreach (string backup in backups)
+                list.Items.Add(backup);
+            list.SelectedIndex = 0;
+            var restore = new Button { Text = "Восстановить", Dock = DockStyle.Bottom, Height = 42 };
+            restore.Click += (_, _) => { picker.DialogResult = DialogResult.OK; picker.Close(); };
+            picker.Controls.Add(list);
+            picker.Controls.Add(restore);
+
+            if (picker.ShowDialog(this) != DialogResult.OK ||
+                list.SelectedItem is not string selected)
+                return;
+
+            if (MessageBox.Show(this,
+                    "Восстановить выбранную копию? Текущие данные будут предварительно сохранены.",
+                    "Подтверждение", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
+                != DialogResult.Yes)
+                return;
+
+            _controller.RestoreBackup(selected);
+            RefreshView();
+            MessageBox.Show(this, "База восстановлена.", "Восстановление",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex) { ShowError("Ошибка восстановления", ex); }
     }
 
     private void btnSaveSettings_Click(object? sender, EventArgs e)
