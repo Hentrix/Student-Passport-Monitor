@@ -1,21 +1,18 @@
-using CommunityToolkit.WinUI.Notifications;
-
 namespace StudentPassportMonitor.Services;
 
 public sealed class ToastNotificationService
 {
+    // Windows tray balloon notification. Native toast integration is planned separately.
     public void Show(string title, string message)
     {
-        try
+        using var icon = new NotifyIcon
         {
-            new ToastContentBuilder()
-                .AddText(title)
-                .AddText(message)
-                .Show();
-        }
-        catch
-        {
-            // Toast delivery may be unavailable until the app has a Start Menu shortcut/AUMID.
-        }
+            Icon = SystemIcons.Information,
+            Text = "Student Passport Monitor",
+            Visible = true
+        };
+        icon.ShowBalloonTip(5000, title, message, ToolTipIcon.Info);
+        // Keep the icon alive briefly: disposing immediately can hide the notification.
+        // The application's persistent tray icon is preferred; see MainForm.
     }
 }
