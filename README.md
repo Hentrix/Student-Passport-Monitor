@@ -30,9 +30,9 @@ The age checkpoints are reminders to verify a document, not proof that a passpor
 
 Student records may contain passport numbers and dates of birth. They are **not** included in this repository. Keep the local data directory restricted to the Windows account that needs access, enable BitLocker, and do not commit real student data. JSON files are plaintext; this initial version does not encrypt them.
 
-## Toast notifications
+## Windows notifications
 
-Windows toast delivery for unpackaged WinForms apps can require a Start Menu shortcut and a stable AppUserModelID. If notifications do not appear on a particular machine, the dashboard and tray reminders remain available; configure the shortcut/AUMID for that deployment.
+This version uses the existing WinForms tray icon to show Windows balloon notifications. It does not yet implement modern Windows toast notifications. Native toast integration is planned as a separate improvement.
 
 ## Data files
 
