@@ -46,7 +46,7 @@ The app never uploads student data to GitHub or any remote service.
 
 - `Forms/MainForm.Designer.cs` — только компоненты и их расположение; редактируется в Visual Studio Designer.
 - `Forms/MainForm.cs` — только отображение, события, диалоги, системный трей и таймер.
-- `Application/StudentMonitorController.cs` — сценарии приложения: импорт, фильтрация, статистика, сохранение, ежедневная проверка.
+- `Core/StudentMonitorController.cs` — сценарии приложения: импорт, фильтрация, статистика, сохранение, ежедневная проверка.
 - `Models/` — данные студентов и настройки.
 - `Services/` — чтение Excel, хранение JSON, правила возрастных рубежей, объединение списков, автозапуск.
 
