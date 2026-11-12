@@ -12,6 +12,7 @@ public partial class MainForm : Form
     private DateOnly _observedDate = DateOnly.FromDateTime(DateTime.Today);
     private bool _allowExit;
     private bool _loadingGroups;
+    private StudentSortOrder _sortOrder = StudentSortOrder.Name;
 
     public MainForm()
     {
@@ -33,6 +34,8 @@ public partial class MainForm : Form
         chkStartup.Checked = _controller.StartupEnabled;
         trayIcon.Visible = true;
 
+        colDue.SortMode = DataGridViewColumnSortMode.Programmatic;
+        dgvStudents.ColumnHeaderMouseClick += dgvStudents_ColumnHeaderMouseClick;
         RefreshView();
         _dailyTimer.Tick += DailyTimer_Tick;
         _dailyTimer.Start();
@@ -68,7 +71,8 @@ public partial class MainForm : Form
 
         foreach (StudentRow row in _controller.GetRows(
             DateTime.Today, txtSearch.Text.Trim(),
-            cmbGroup.SelectedItem?.ToString() ?? "Все группы"))
+            cmbGroup.SelectedItem?.ToString() ?? "Все группы",
+            chkAttentionOnly.Checked, _sortOrder))
         {
             int index = dgvStudents.Rows.Add(
                 row.FullName, row.Group, row.Faculty, row.BirthDate,
@@ -79,7 +83,7 @@ public partial class MainForm : Form
             gridRow.DefaultCellStyle.BackColor = row.AlertStatus switch
             {
                 PassportAlertState.ReviewRequired => Color.MistyRose,
-                PassportAlertState.Upcoming => Color.LemonChiffon,
+                PassportAlertState.Upcoming => Color.FromArgb(255, 224, 178),
                 _ => Color.White
             };
         }
@@ -94,8 +98,26 @@ public partial class MainForm : Form
                 break;
             }
         }
+        colDue.HeaderCell.SortGlyphDirection = _sortOrder switch
+        {
+            StudentSortOrder.DueDateAscending => SortOrder.Ascending,
+            StudentSortOrder.DueDateDescending => SortOrder.Descending,
+            _ => SortOrder.None
+        };
         UpdateSelectedStudent();
     }
+
+    private void dgvStudents_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+    {
+        if (e.ColumnIndex != colDue.Index) return;
+
+        _sortOrder = _sortOrder == StudentSortOrder.DueDateAscending
+            ? StudentSortOrder.DueDateDescending
+            : StudentSortOrder.DueDateAscending;
+        RenderStudents();
+    }
+
+    private void chkAttentionOnly_CheckedChanged(object? sender, EventArgs e) => RenderStudents();
 
     private void RebuildGroups()
     {
