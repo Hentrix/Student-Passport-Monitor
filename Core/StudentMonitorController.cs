@@ -98,6 +98,24 @@ public sealed class StudentMonitorController
             .ToArray();
     }
 
+    public IReadOnlyList<PassportAlert> GetAttention(DateTime today) =>
+        _passport.GetAlerts(_students, today, Settings.WarningDays)
+            .Where(a => a.Status != PassportAlertState.Planned)
+            .ToArray();
+
+    public IReadOnlyList<CheckHistoryEntry> GetHistory() =>
+        _storage.LoadHistory().OrderByDescending(h => h.CheckedAt).Take(100).ToArray();
+
+    public void MarkReviewed(Guid studentId)
+    {
+        Student student = _students.FirstOrDefault(s => s.Id == studentId)
+            ?? throw new InvalidOperationException("Студент не найден.");
+        DateTime? previous = student.LastReviewedAt;
+        student.LastReviewedAt = DateTime.Now;
+        try { _storage.SaveStudents(_students); }
+        catch { student.LastReviewedAt = previous; throw; }
+    }
+
     public IReadOnlyList<string> GetGroups() =>
         _students.Select(s => s.Group)
             .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -219,6 +237,13 @@ public sealed class StudentMonitorController
 
         Settings.LastDailyCheckDate = today.Date;
         _storage.SaveSettings(Settings);
+        try
+        {
+            var history = _storage.LoadHistory();
+            history.Add(new CheckHistoryEntry(DateTime.Now, alerts.Length, force));
+            _storage.SaveHistory(history.TakeLast(200).ToArray());
+        }
+        catch (IOException) { /* Check history must not prevent notifications. */ }
         return alerts;
     }
 }
