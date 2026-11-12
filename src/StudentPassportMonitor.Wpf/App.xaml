@@ -180,6 +180,64 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- CalendarItem определяет реальный фон, заголовок и сетку дней.
+         Без этого шаблона стандартная тема Windows оставляет белую подложку. -->
+    <Style TargetType="CalendarItem">
+      <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CalendarItem">
+            <Border Background="{StaticResource PanelBrush}" Padding="8" CornerRadius="8">
+              <StackPanel>
+                <Grid Height="36" Margin="0,0,0,8">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="36"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="36"/>
+                  </Grid.ColumnDefinitions>
+                  <Button x:Name="PART_PreviousButton" Grid.Column="0"
+                          Content="◀" FontSize="12" Margin="0" Padding="0"
+                          Background="Transparent" BorderThickness="0"/>
+                  <Button x:Name="PART_HeaderButton" Grid.Column="1"
+                          Margin="0" Padding="0" FontWeight="SemiBold"
+                          Background="Transparent" BorderThickness="0"/>
+                  <Button x:Name="PART_NextButton" Grid.Column="2"
+                          Content="▶" FontSize="12" Margin="0" Padding="0"
+                          Background="Transparent" BorderThickness="0"/>
+                </Grid>
+                <Grid x:Name="PART_MonthView" HorizontalAlignment="Center"
+                      Background="{StaticResource PanelBrush}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="34"/><ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="34"/><ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="34"/><ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="34"/>
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/><RowDefinition Height="32"/>
+                    <RowDefinition Height="32"/><RowDefinition Height="32"/>
+                    <RowDefinition Height="32"/><RowDefinition Height="32"/>
+                    <RowDefinition Height="32"/>
+                  </Grid.RowDefinitions>
+                </Grid>
+                <Grid x:Name="PART_YearView" Visibility="Collapsed"
+                      Background="{StaticResource PanelBrush}" HorizontalAlignment="Center">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80"/><ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="48"/><RowDefinition Height="48"/>
+                    <RowDefinition Height="48"/><RowDefinition Height="48"/>
+                  </Grid.RowDefinitions>
+                </Grid>
+              </StackPanel>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <Style TargetType="Calendar">
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
