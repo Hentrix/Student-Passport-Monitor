@@ -24,6 +24,7 @@ partial class MainForm
     private NumericUpDown nudWarningDays = null!;
     private CheckBox chkStartup = null!;
     private Button btnSaveSettings = null!;
+    private Button btnRestoreBackup = null!;
     private Button btnCheckNow = null!;
     private TextBox txtReplacementDate = null!;
     private Button btnSaveReplacement = null!;
@@ -81,6 +82,7 @@ partial class MainForm
         nudWarningDays = new NumericUpDown();
         chkStartup = new CheckBox();
         btnSaveSettings = new Button();
+        btnRestoreBackup = new Button();
         btnCheckNow = new Button();
         txtReplacementDate = new TextBox();
         btnSaveReplacement = new Button();
@@ -318,11 +320,16 @@ partial class MainForm
         btnSaveSettings.Text = "Сохранить настройки";
         btnSaveSettings.Location = new Point(34, 205);
         btnSaveSettings.Size = new Size(190, 38);
+        btnRestoreBackup.Name = "btnRestoreBackup";
+        btnRestoreBackup.Text = "Восстановить базу";
+        btnRestoreBackup.Location = new Point(245, 205);
+        btnRestoreBackup.Size = new Size(190, 38);
+        btnRestoreBackup.Click += btnRestoreBackup_Click;
         note.Text = "Приложение проверяет даты рождения при работе в фоне (в системном трее).\\nВозрастные рубежи — напоминание проверить документ, а не подтверждение просрочки.";
         note.AutoSize = true;
         note.Location = new Point(34, 280);
         note.ForeColor = Color.DimGray;
-        tabSettings.Controls.AddRange(new Control[] { settingsTitle, warningLayout, chkStartup, btnSaveSettings, note });
+        tabSettings.Controls.AddRange(new Control[] { settingsTitle, warningLayout, chkStartup, btnSaveSettings, btnRestoreBackup, note });
         trayOpen.Text = "Открыть";
         trayExit.Text = "Выход";
         trayMenu.Items.AddRange(new ToolStripItem[] { trayOpen, trayExit });
