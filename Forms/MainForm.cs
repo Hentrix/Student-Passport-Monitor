@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using System.Globalization;
+using StudentPassportMonitor.Application;
 using StudentPassportMonitor.Models;
 using StudentPassportMonitor.Services;
 
@@ -7,219 +7,217 @@ namespace StudentPassportMonitor.Forms;
 
 public partial class MainForm : Form
 {
-    private readonly JsonDatabaseService _db = new();
-    private readonly ExcelImportService _excel = new();
-    private readonly PassportExpirationService _passport = new();
-    private readonly StartupService _startup = new();
-    private readonly StudentMergeService _merger = new();
-    private readonly System.Windows.Forms.Timer _dailyTimer = new();
-    private List<Student> _students = new();
-    private AppSettings _settings = new();
+    private StudentMonitorController? _controller;
+    private readonly System.Windows.Forms.Timer _dailyTimer = new() { Interval = 60_000 };
+    private DateOnly _observedDate = DateOnly.FromDateTime(DateTime.Today);
     private bool _allowExit;
-    private DateOnly _lastObservedDate = DateOnly.FromDateTime(DateTime.Today);
+    private bool _loadingGroups;
 
     public MainForm()
     {
         InitializeComponent();
+
+        // Never access files, registry or timers while Visual Studio renders the form.
         if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
             return;
 
-        _students = _db.LoadStudents();
-        _settings = _db.LoadSettings();
-        nudWarningDays.Value = Math.Clamp(_settings.WarningDays, (int)nudWarningDays.Minimum, (int)nudWarningDays.Maximum);
-        chkStartup.Checked = _startup.IsEnabled();
-        _settings.StartWithWindows = chkStartup.Checked;
+        _controller = new StudentMonitorController(
+            new JsonDatabaseService(),
+            new ExcelImportService(),
+            new PassportExpirationService(),
+            new StudentMergeService(),
+            new StartupService());
 
+        nudWarningDays.Value = Math.Clamp(_controller.Settings.WarningDays,
+            (int)nudWarningDays.Minimum, (int)nudWarningDays.Maximum);
+        chkStartup.Checked = _controller.StartupEnabled;
         trayIcon.Visible = true;
-        RebuildGroups();
-        RefreshDashboard();
-        _dailyTimer.Interval = 60_000;
+
+        RefreshView();
         _dailyTimer.Tick += DailyTimer_Tick;
         _dailyTimer.Start();
-        Shown += (_, _) => RunDailyCheck();
+        Shown += (_, _) => CheckDaily();
+    }
+
+    private void RefreshView()
+    {
+        RebuildGroups();
+        RenderDashboard();
+        RenderStudents();
+    }
+
+    private void RenderDashboard()
+    {
+        if (_controller is null) return;
+
+        DashboardSummary summary = _controller.GetSummary(DateTime.Today);
+        lblTotalValue.Text = summary.Total.ToString();
+        lblUpcomingValue.Text = summary.Upcoming.ToString();
+        lblReviewValue.Text = summary.ReviewRequired.ToString();
+        lblLastCheck.Text = summary.LastChecked is { } last
+            ? $"Последняя проверка: {last:dd.MM.yyyy}"
+            : "Проверка ещё не выполнялась";
+    }
+
+    private void RenderStudents()
+    {
+        if (_controller is null) return;
+
+        Guid? selectedId = (dgvStudents.CurrentRow?.Tag as Student)?.Id;
+        dgvStudents.Rows.Clear();
+
+        foreach (StudentRow row in _controller.GetRows(
+            DateTime.Today, txtSearch.Text.Trim(),
+            cmbGroup.SelectedItem?.ToString() ?? "Все группы"))
+        {
+            int index = dgvStudents.Rows.Add(
+                row.FullName, row.Group, row.Faculty, row.BirthDate,
+                row.PassportNumber, row.Age, row.DueDate, row.State);
+
+            DataGridViewRow gridRow = dgvStudents.Rows[index];
+            gridRow.Tag = row.Student;
+            gridRow.DefaultCellStyle.BackColor = row.AlertStatus switch
+            {
+                PassportAlertState.ReviewRequired => Color.MistyRose,
+                PassportAlertState.Upcoming => Color.LemonChiffon,
+                _ => Color.White
+            };
+        }
+
+        if (selectedId is { } id)
+        {
+            foreach (DataGridViewRow row in dgvStudents.Rows)
+            {
+                if ((row.Tag as Student)?.Id != id) continue;
+                row.Selected = true;
+                dgvStudents.CurrentCell = row.Cells[0];
+                break;
+            }
+        }
+        UpdateSelectedStudent();
+    }
+
+    private void RebuildGroups()
+    {
+        if (_controller is null) return;
+        string selected = cmbGroup.SelectedItem?.ToString() ?? "Все группы";
+
+        _loadingGroups = true;
+        try
+        {
+            cmbGroup.Items.Clear();
+            cmbGroup.Items.Add("Все группы");
+            foreach (string group in _controller.GetGroups())
+                cmbGroup.Items.Add(group);
+
+            cmbGroup.SelectedItem = cmbGroup.Items.Contains(selected)
+                ? selected : "Все группы";
+        }
+        finally { _loadingGroups = false; }
+    }
+
+    private void UpdateSelectedStudent()
+    {
+        Student? selected = dgvStudents.CurrentRow?.Tag as Student;
+        lblSelectedStudent.Text = selected?.FullName ?? "Выберите студента";
+        txtReplacementDate.Text = selected?.LastPassportReplacementDate?.ToString("dd.MM.yyyy") ?? "";
     }
 
     private void DailyTimer_Tick(object? sender, EventArgs e)
     {
         DateOnly today = DateOnly.FromDateTime(DateTime.Today);
-        if (today == _lastObservedDate) return;
+        if (today == _observedDate) return;
 
-        _lastObservedDate = today;
-        RunDailyCheck();
+        _observedDate = today;
+        CheckDaily();
     }
 
-    private void RefreshDashboard()
+    private void CheckDaily(bool force = false)
     {
-        var alerts = _passport.GetAlerts(_students, DateTime.Today, _settings.WarningDays);
-        lblTotalValue.Text = _students.Count.ToString();
-        lblUpcomingValue.Text = alerts.Count(a => a.DaysRemaining >= 0 && a.DaysRemaining <= _settings.WarningDays).ToString();
-        lblReviewValue.Text = alerts.Count(a => a.Status == PassportAlertState.ReviewRequired).ToString();
-
-        dgvStudents.Rows.Clear();
-        foreach (var student in _students.OrderBy(s => s.LastName).ThenBy(s => s.FirstName))
+        if (_controller is null) return;
+        try
         {
-            var alert = _passport.GetAlert(student, DateTime.Today, _settings.WarningDays);
-            int i = dgvStudents.Rows.Add(student.FullName, student.Group, student.Faculty,
-                student.BirthDate?.ToString("dd.MM.yyyy") ?? "—",
-                student.PassportNumber, alert?.MilestoneAge.ToString() ?? "—",
-                alert?.DueDate.ToString("dd.MM.yyyy") ?? "—", alert?.State ?? "Нет даты рождения");
-            dgvStudents.Rows[i].Tag = student;
-            if (alert?.Status == PassportAlertState.ReviewRequired)
-                dgvStudents.Rows[i].DefaultCellStyle.BackColor = Color.MistyRose;
-            else if (alert?.Status == PassportAlertState.Upcoming)
-                dgvStudents.Rows[i].DefaultCellStyle.BackColor = Color.LemonChiffon;
+            IReadOnlyList<PassportAlert> alerts = _controller.CheckDaily(DateTime.Today, force);
+            // Windows balloon tips can replace each other: send a single summary.
+            if (alerts.Count > 0)
+                trayIcon.ShowBalloonTip(5000, "Проверка паспортов",
+                    $"Требуют внимания: {alerts.Count} студентов. Откройте приложение для подробностей.",
+                    ToolTipIcon.Info);
+
+            RenderDashboard();
+            RenderStudents();
+            if (force)
+                MessageBox.Show(this, $"Проверка завершена. Требуют внимания: {alerts.Count}.",
+                    "Student Passport Monitor", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-        lblLastCheck.Text = _settings.LastDailyCheckDate is DateTime last
-            ? $"Последняя проверка: {last:dd.MM.yyyy}" : "Проверка ещё не выполнялась";
-        ApplyFilter();
-    }
-
-    private void RunDailyCheck(bool force = false)
-    {
-        if (!force && _settings.LastDailyCheckDate?.Date == DateTime.Today) return;
-        var alerts = _passport.GetAlerts(_students, DateTime.Today, _settings.WarningDays)
-            .Where(a => a.DaysRemaining <= _settings.WarningDays)
-            .ToList();
-
-        foreach (var alert in alerts)
-        {
-            string when = alert.DaysRemaining < 0
-                ? $"контрольная дата {alert.DueDate:dd.MM.yyyy} уже прошла"
-                : $"до даты {alert.DueDate:dd.MM.yyyy} осталось {alert.DaysRemaining} дн.";
-            trayIcon.ShowBalloonTip(5000, "Проверка паспорта", $"{alert.Student.FullName}: рубеж {alert.MilestoneAge} лет — {when}. Проверьте документ.", ToolTipIcon.Info);
-        }
-
-        _settings.LastDailyCheckDate = DateTime.Today;
-        _db.SaveSettings(_settings);
-        RefreshDashboard();
-        if (force)
-            MessageBox.Show($"Проверка завершена. Требуют внимания: {alerts.Count}.", "Student Passport Monitor",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        catch (Exception ex) { ShowError("Ошибка ежедневной проверки", ex); }
     }
 
     private void btnImport_Click(object? sender, EventArgs e)
     {
+        if (_controller is null) return;
         using var dialog = new OpenFileDialog
         {
             Title = "Импорт списка студентов",
-            Filter = "Excel (*.xlsx;*.xls)|*.xlsx;*.xls",
-            Multiselect = false
+            Filter = "Excel (*.xlsx;*.xls)|*.xlsx;*.xls"
         };
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+        var choice = MessageBox.Show(this,
+            "Да — заменить текущий список.\nНет — объединить с текущим списком.",
+            "Импорт Excel", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+        if (choice == DialogResult.Cancel) return;
+
         try
         {
-            var imported = _excel.Import(dialog.FileName);
-            var answer = MessageBox.Show(
-                $"Найдено записей: {imported.Count}.\nДа — заменить текущий список.\nНет — добавить записи к текущему списку.",
-                "Импорт Excel", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-            if (answer == DialogResult.Cancel) return;
-            _students = answer == DialogResult.Yes
-                ? imported
-                : _merger.Merge(_students, imported);
-            _db.SaveStudents(_students);
-            RebuildGroups();
-            RefreshDashboard();
-            ApplyFilter();
-            MessageBox.Show($"Импортировано записей: {imported.Count}.", "Готово",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            int count = _controller.Import(dialog.FileName, choice == DialogResult.Yes);
+            RefreshView();
+            MessageBox.Show(this, $"Обработано записей: {count}.",
+                "Импорт завершён", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Не удалось импортировать файл.\n{ex.Message}", "Ошибка импорта",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+        catch (Exception ex) { ShowError("Ошибка импорта", ex); }
     }
 
     private void btnSaveSettings_Click(object? sender, EventArgs e)
     {
-        _settings.WarningDays = (int)nudWarningDays.Value;
+        if (_controller is null) return;
         try
         {
-            _startup.SetEnabled(chkStartup.Checked);
-            _settings.StartWithWindows = chkStartup.Checked;
-            _db.SaveSettings(_settings);
-            RefreshDashboard();
-            MessageBox.Show("Настройки сохранены.", "Настройки", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            _controller.SaveSettings((int)nudWarningDays.Value, chkStartup.Checked);
+            RefreshView();
+            MessageBox.Show(this, "Настройки сохранены.", "Настройки",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Не удалось сохранить настройки автозапуска: {ex.Message}", "Ошибка",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    private void btnCheckNow_Click(object? sender, EventArgs e) => RunDailyCheck(force: true);
-
-    private void dgvStudents_SelectionChanged(object? sender, EventArgs e)
-    {
-        if (dgvStudents.CurrentRow?.Tag is not Student student) return;
-        txtReplacementDate.Text = student.LastPassportReplacementDate?.ToString("dd.MM.yyyy") ?? "";
-        lblSelectedStudent.Text = student.FullName;
+        catch (Exception ex) { ShowError("Ошибка сохранения настроек", ex); }
     }
 
     private void btnSaveReplacement_Click(object? sender, EventArgs e)
     {
+        if (_controller is null) return;
         if (dgvStudents.CurrentRow?.Tag is not Student student)
         {
-            MessageBox.Show("Сначала выберите студента.", "Нет выбора", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-        if (string.IsNullOrWhiteSpace(txtReplacementDate.Text))
-            student.LastPassportReplacementDate = null;
-        else if (DateTime.TryParseExact(
-            txtReplacementDate.Text.Trim(),
-            "dd.MM.yyyy",
-            CultureInfo.GetCultureInfo("ru-RU"),
-            DateTimeStyles.None,
-            out var date) && date.Date <= DateTime.Today &&
-            (student.BirthDate is null || date.Date >= student.BirthDate.Value.Date))
-            student.LastPassportReplacementDate = date.Date;
-        else
-        {
-            MessageBox.Show("Введите корректную дату ДД.ММ.ГГГГ (не в будущем и не раньше рождения).", "Некорректная дата",
+            MessageBox.Show(this, "Сначала выберите студента.", "Нет выбора",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        _db.SaveStudents(_students);
-        RefreshDashboard();
-    }
 
-    private void txtSearch_TextChanged(object? sender, EventArgs e) => ApplyFilter();
-    private void cmbGroup_SelectedIndexChanged(object? sender, EventArgs e) => ApplyFilter();
-
-    private void ApplyFilter()
-    {
-        string query = txtSearch.Text.Trim();
-        string group = cmbGroup.SelectedItem?.ToString() ?? "Все группы";
-        dgvStudents.CurrentCell = null;
-        foreach (DataGridViewRow row in dgvStudents.Rows)
+        try
         {
-            if (row.Tag is not Student student) continue;
-
-            row.Visible =
-                (string.IsNullOrWhiteSpace(query) ||
-                 student.FullName.Contains(query, StringComparison.CurrentCultureIgnoreCase)) &&
-                (group == "Все группы" ||
-                 student.Group.Equals(group, StringComparison.CurrentCultureIgnoreCase));
+            _controller.SaveReplacement(student.Id, txtReplacementDate.Text);
+            RenderDashboard();
+            RenderStudents();
         }
+        catch (Exception ex) { ShowError("Ошибка сохранения даты", ex); }
     }
 
-    private void RebuildGroups()
+    private void btnCheckNow_Click(object? sender, EventArgs e) => CheckDaily(force: true);
+    private void btnRefresh_Click(object? sender, EventArgs e) => RefreshView();
+    private void txtSearch_TextChanged(object? sender, EventArgs e) => RenderStudents();
+    private void cmbGroup_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        var selected = cmbGroup.SelectedItem?.ToString() ?? "Все группы";
-        cmbGroup.Items.Clear();
-        cmbGroup.Items.Add("Все группы");
-        foreach (var group in _students.Select(s => s.Group).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().OrderBy(s => s))
-            cmbGroup.Items.Add(group);
-        cmbGroup.SelectedItem = cmbGroup.Items.Contains(selected) ? selected : "Все группы";
+        if (!_loadingGroups) RenderStudents();
     }
-
-    private void btnRefresh_Click(object? sender, EventArgs e)
-    {
-        RebuildGroups();
-        RefreshDashboard();
-        ApplyFilter();
-    }
+    private void dgvStudents_SelectionChanged(object? sender, EventArgs e) => UpdateSelectedStudent();
 
     private void trayOpen_Click(object? sender, EventArgs e)
     {
@@ -231,9 +229,7 @@ public partial class MainForm : Form
     private void trayExit_Click(object? sender, EventArgs e)
     {
         _allowExit = true;
-        trayIcon.Visible = false;
-        _dailyTimer.Stop();
-        Application.Exit();
+        Close();
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
@@ -246,8 +242,13 @@ public partial class MainForm : Form
                 "Приложение продолжает работать в системном трее.", ToolTipIcon.Info);
             return;
         }
+
         _dailyTimer.Stop();
+        _dailyTimer.Dispose();
         trayIcon.Visible = false;
         base.OnFormClosing(e);
     }
+
+    private void ShowError(string title, Exception ex) =>
+        MessageBox.Show(this, ex.Message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
 }
