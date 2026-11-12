@@ -175,6 +175,74 @@ public partial class MainForm : Form
         catch (Exception ex) { ShowError("Ошибка ежедневной проверки", ex); }
     }
 
+    private void btnAddStudent_Click(object? sender, EventArgs e) => OpenStudentEditor(null);
+
+    private void btnEditStudent_Click(object? sender, EventArgs e)
+    {
+        if (dgvStudents.CurrentRow?.Tag is not Student selected)
+        {
+            MessageBox.Show(this, "Выберите студента.", "Редактирование",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+        OpenStudentEditor(selected);
+    }
+
+    private void dgvStudents_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex >= 0 && dgvStudents.Rows[e.RowIndex].Tag is Student student)
+            OpenStudentEditor(student);
+    }
+
+    private void OpenStudentEditor(Student? student)
+    {
+        if (_controller is null) return;
+        using var editor = new StudentEditorForm(student);
+        while (editor.ShowDialog(this) == DialogResult.OK && editor.Result is { } updated)
+        {
+            try
+            {
+                _controller.SaveStudent(updated);
+                RefreshView();
+                return;
+            }
+            catch (Exception ex)
+            {
+                ShowError("Не удалось сохранить студента", ex);
+                // Reopen the editor without discarding the entered values.
+                using var retry = new StudentEditorForm(updated);
+                if (retry.ShowDialog(this) != DialogResult.OK || retry.Result is not { } corrected)
+                    return;
+                try
+                {
+                    _controller.SaveStudent(corrected);
+                    RefreshView();
+                }
+                catch (Exception retryError) { ShowError("Не удалось сохранить студента", retryError); }
+                return;
+            }
+        }
+    }
+
+    private void btnDeleteStudent_Click(object? sender, EventArgs e)
+    {
+        if (_controller is null || dgvStudents.CurrentRow?.Tag is not Student student)
+        {
+            MessageBox.Show(this, "Выберите студента.", "Удаление",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+        if (MessageBox.Show(this, $"Удалить студента «{student.FullName}»?\\nДействие нельзя отменить.",
+                "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
+            != DialogResult.Yes) return;
+        try
+        {
+            _controller.DeleteStudent(student.Id);
+            RefreshView();
+        }
+        catch (Exception ex) { ShowError("Ошибка удаления", ex); }
+    }
+
     private void btnImport_Click(object? sender, EventArgs e)
     {
         if (_controller is null) return;
