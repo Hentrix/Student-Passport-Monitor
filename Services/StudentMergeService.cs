@@ -29,6 +29,7 @@ public sealed class StudentMergeService
             student.Id = previous.Id;
             // Spreadsheet imports must not erase manually maintained data.
             student.LastPassportReplacementDate = previous.LastPassportReplacementDate;
+            student.LastReviewedAt = previous.LastReviewedAt;
             student.BirthDate ??= previous.BirthDate;
             student.IssueDate ??= previous.IssueDate;
             if (string.IsNullOrWhiteSpace(student.PassportNumber))
