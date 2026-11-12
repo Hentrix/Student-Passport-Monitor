@@ -61,35 +61,75 @@
       </Grid>
       <Grid Grid.Row="1">
         <Grid x:Name="DashboardPage">
-          <StackPanel>
-            <UniformGrid Columns="3" Margin="0,0,0,24">
-              <Border Style="{StaticResource CardStyle}">
-                <StackPanel>
-                  <TextBlock Text="Всего студентов" Foreground="{StaticResource MutedBrush}"/>
-                  <TextBlock x:Name="TotalValue" Text="0" FontSize="38" FontWeight="Bold" Margin="0,10,0,0"/>
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource CardStyle}">
-                <StackPanel>
-                  <TextBlock Text="Скоро контрольная дата" Foreground="{StaticResource MutedBrush}"/>
-                  <TextBlock x:Name="UpcomingValue" Text="0" FontSize="38" FontWeight="Bold" Foreground="#F5B768" Margin="0,10,0,0"/>
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource CardStyle}">
-                <StackPanel>
-                  <TextBlock Text="Требуют проверки" Foreground="{StaticResource MutedBrush}"/>
-                  <TextBlock x:Name="ReviewValue" Text="0" FontSize="38" FontWeight="Bold" Foreground="#ED8C93" Margin="0,10,0,0"/>
-                </StackPanel>
-              </Border>
-            </UniformGrid>
-            <Border Style="{StaticResource CardStyle}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <UniformGrid Columns="3" Margin="0,0,0,18">
+            <Border Style="{StaticResource CardStyle}" Cursor="Hand" MouseLeftButtonUp="DashboardAll_Click" ToolTip="Открыть список студентов">
               <StackPanel>
-                <TextBlock Text="Контроль паспортных данных" FontSize="19" FontWeight="SemiBold" Margin="0,0,0,12"/>
-                <TextBlock x:Name="LastCheckValue" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,20"/>
-                <Button Content="Проверить сейчас" Style="{StaticResource AccentButton}" HorizontalAlignment="Left" Click="CheckNow_Click"/>
+                <TextBlock Text="Всего студентов" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+                <TextBlock x:Name="TotalValue" Text="0" FontSize="38" FontWeight="Bold" Margin="0,10,0,0"/>
+                <TextBlock Text="Открыть список →" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0"/>
               </StackPanel>
             </Border>
-          </StackPanel>
+            <Border Style="{StaticResource CardStyle}" Cursor="Hand" MouseLeftButtonUp="DashboardAttention_Click" ToolTip="Показать записи, требующие внимания">
+              <StackPanel>
+                <TextBlock Text="Скоро контрольная дата" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+                <TextBlock x:Name="UpcomingValue" Text="0" FontSize="38" FontWeight="Bold" Foreground="#F5B768" Margin="0,10,0,0"/>
+                <TextBlock Text="Перейти к уведомлениям →" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0"/>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardStyle}" Cursor="Hand" MouseLeftButtonUp="DashboardAttention_Click" ToolTip="Показать записи, требующие проверки">
+              <StackPanel>
+                <TextBlock Text="Требуют проверки" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+                <TextBlock x:Name="ReviewValue" Text="0" FontSize="38" FontWeight="Bold" Foreground="#ED8C93" Margin="0,10,0,0"/>
+                <TextBlock Text="Перейти к уведомлениям →" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0"/>
+              </StackPanel>
+            </Border>
+          </UniformGrid>
+          <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,18">
+            <DockPanel LastChildFill="True">
+              <Button DockPanel.Dock="Right" Content="Проверить сейчас" Style="{StaticResource AccentButton}"
+                      Click="CheckNow_Click" Margin="12,0,0,0" VerticalAlignment="Center"/>
+              <StackPanel>
+                <TextBlock Text="Контроль паспортных данных" FontSize="18" FontWeight="SemiBold"/>
+                <TextBlock x:Name="LastCheckValue" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0"/>
+              </StackPanel>
+            </DockPanel>
+          </Border>
+          <Border Grid.Row="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}"
+                  BorderThickness="1" CornerRadius="12" Padding="16">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <DockPanel Margin="0,0,0,12">
+                <Button DockPanel.Dock="Right" Content="Все уведомления" Click="DashboardAttentionButton_Click"
+                        Margin="12,0,0,0"/>
+                <StackPanel>
+                  <TextBlock Text="Ближайшие события" FontSize="18" FontWeight="SemiBold"/>
+                  <TextBlock x:Name="DashboardAttentionSummary" Foreground="{StaticResource MutedBrush}"
+                             Margin="0,4,0,0" Text="Нет событий, требующих внимания"/>
+                </StackPanel>
+              </DockPanel>
+              <DataGrid x:Name="DashboardAttentionGrid" Grid.Row="1" AutoGenerateColumns="False"
+                        IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column"
+                        MouseDoubleClick="DashboardAttentionGrid_DoubleClick">
+                <DataGrid.Columns>
+                  <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Студент" Binding="{Binding FullName}" Width="2*"/>
+                  <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Группа" Binding="{Binding Group}" Width="*"/>
+                  <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Контрольная дата" Binding="{Binding DueDate}" Width="*"/>
+                  <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Состояние" Binding="{Binding State}" Width="2*"/>
+                </DataGrid.Columns>
+              </DataGrid>
+              <TextBlock Grid.Row="2" Text="Двойной щелчок по записи открывает карточку студента"
+                         Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,10,0,0"/>
+            </Grid>
+          </Border>
         </Grid>
         <Grid x:Name="StudentsPage" Visibility="Collapsed">
           <Grid.RowDefinitions>
