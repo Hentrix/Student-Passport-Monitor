@@ -84,6 +84,7 @@ public partial class MainForm : Form
             {
                 PassportAlertState.ReviewRequired => Color.MistyRose,
                 PassportAlertState.Upcoming => Color.FromArgb(255, 224, 178),
+                PassportAlertState.ConfirmationRequired => Color.FromArgb(255, 224, 178),
                 _ => Color.White
             };
         }
