@@ -132,6 +132,7 @@ public sealed class StudentEditorForm : Form
             Result = new Student
             {
                 Id = _original.Id,
+                LastReviewedAt = _original.LastReviewedAt,
                 LastName = Get("LastName"),
                 FirstName = Get("FirstName"),
                 MiddleName = Get("MiddleName"),
