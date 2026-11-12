@@ -1,3 +1,4 @@
+using System.Globalization;
 using StudentPassportMonitor.Models;
 using StudentPassportMonitor.Services;
 
@@ -9,6 +10,7 @@ public partial class MainForm : Form
     private readonly ExcelImportService _excel = new();
     private readonly PassportExpirationService _passport = new();
     private readonly StartupService _startup = new();
+    private readonly StudentMergeService _merger = new();
     private readonly System.Windows.Forms.Timer _dailyTimer = new();
     private List<Student> _students = new();
     private AppSettings _settings = new();
@@ -28,17 +30,18 @@ public partial class MainForm : Form
         RebuildGroups();
         RefreshDashboard();
         _dailyTimer.Interval = 60_000;
-        _dailyTimer.Tick += (_, _) =>
-        {
-            var today = DateOnly.FromDateTime(DateTime.Today);
-            if (today != _lastObservedDate)
-            {
-                _lastObservedDate = today;
-                RunDailyCheck();
-            }
-        };
+        _dailyTimer.Tick += DailyTimer_Tick;
         _dailyTimer.Start();
         Shown += (_, _) => RunDailyCheck();
+    }
+
+    private void DailyTimer_Tick(object? sender, EventArgs e)
+    {
+        DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+        if (today == _lastObservedDate) return;
+
+        _lastObservedDate = today;
+        RunDailyCheck();
     }
 
     private void RefreshDashboard()
@@ -46,7 +49,7 @@ public partial class MainForm : Form
         var alerts = _passport.GetAlerts(_students, DateTime.Today, _settings.WarningDays);
         lblTotalValue.Text = _students.Count.ToString();
         lblUpcomingValue.Text = alerts.Count(a => a.DaysRemaining >= 0 && a.DaysRemaining <= _settings.WarningDays).ToString();
-        lblReviewValue.Text = alerts.Count(a => a.DaysRemaining < 0).ToString();
+        lblReviewValue.Text = alerts.Count(a => a.Status == PassportAlertState.ReviewRequired).ToString();
 
         dgvStudents.Rows.Clear();
         foreach (var student in _students.OrderBy(s => s.LastName).ThenBy(s => s.FirstName))
@@ -57,11 +60,14 @@ public partial class MainForm : Form
                 student.PassportNumber, alert?.MilestoneAge.ToString() ?? "—",
                 alert?.DueDate.ToString("dd.MM.yyyy") ?? "—", alert?.State ?? "Нет даты рождения");
             dgvStudents.Rows[i].Tag = student;
-            if (alert?.DaysRemaining < 0) dgvStudents.Rows[i].DefaultCellStyle.BackColor = Color.MistyRose;
-            else if (alert?.DaysRemaining <= _settings.WarningDays) dgvStudents.Rows[i].DefaultCellStyle.BackColor = Color.LemonChiffon;
+            if (alert?.Status == PassportAlertState.ReviewRequired)
+                dgvStudents.Rows[i].DefaultCellStyle.BackColor = Color.MistyRose;
+            else if (alert?.Status == PassportAlertState.Upcoming)
+                dgvStudents.Rows[i].DefaultCellStyle.BackColor = Color.LemonChiffon;
         }
         lblLastCheck.Text = _settings.LastDailyCheckDate is DateTime last
             ? $"Последняя проверка: {last:dd.MM.yyyy}" : "Проверка ещё не выполнялась";
+        ApplyFilter();
     }
 
     private void RunDailyCheck(bool force = false)
@@ -103,22 +109,9 @@ public partial class MainForm : Form
                 $"Найдено записей: {imported.Count}.\nДа — заменить текущий список.\nНет — добавить записи к текущему списку.",
                 "Импорт Excel", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
             if (answer == DialogResult.Cancel) return;
-            if (answer == DialogResult.Yes) _students = imported;
-            else
-            {
-                foreach (var item in imported)
-                {
-                    var existing = _students.FirstOrDefault(s =>
-                        Key(s.LastName, s.FirstName, s.MiddleName, s.Group) ==
-                        Key(item.LastName, item.FirstName, item.MiddleName, item.Group));
-                    if (existing is null) _students.Add(item);
-                    else
-                    {
-                        item.Id = existing.Id;
-                        _students[_students.IndexOf(existing)] = item;
-                    }
-                }
-            }
+            _students = answer == DialogResult.Yes
+                ? imported
+                : _merger.Merge(_students, imported);
             _db.SaveStudents(_students);
             RebuildGroups();
             RefreshDashboard();
@@ -133,10 +126,7 @@ public partial class MainForm : Form
         }
     }
 
-    private static string Key(params string[] values) =>
-        string.Join("|", values.Select(v => (v ?? "").Trim().ToUpperInvariant()));
-
-    private void btnSaveSettings_Click(object? sender, EventArgs e)
+private void btnSaveSettings_Click(object? sender, EventArgs e)
     {
         _settings.WarningDays = (int)nudWarningDays.Value;
         try
@@ -172,11 +162,17 @@ public partial class MainForm : Form
         }
         if (string.IsNullOrWhiteSpace(txtReplacementDate.Text))
             student.LastPassportReplacementDate = null;
-        else if (DateTime.TryParse(txtReplacementDate.Text, out var date))
+        else if (DateTime.TryParseExact(
+            txtReplacementDate.Text.Trim(),
+            "dd.MM.yyyy",
+            CultureInfo.GetCultureInfo("ru-RU"),
+            DateTimeStyles.None,
+            out var date) && date.Date <= DateTime.Today &&
+            (student.BirthDate is null || date.Date >= student.BirthDate.Value.Date))
             student.LastPassportReplacementDate = date.Date;
         else
         {
-            MessageBox.Show("Введите дату в формате ДД.ММ.ГГГГ.", "Некорректная дата",
+            MessageBox.Show("Введите корректную дату ДД.ММ.ГГГГ (не в будущем и не раньше рождения).", "Некорректная дата",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
@@ -191,12 +187,16 @@ public partial class MainForm : Form
     {
         string query = txtSearch.Text.Trim();
         string group = cmbGroup.SelectedItem?.ToString() ?? "Все группы";
+        dgvStudents.CurrentCell = null;
         foreach (DataGridViewRow row in dgvStudents.Rows)
         {
-            var student = row.Tag as Student;
-            row.Visible = student is not null
-                && (string.IsNullOrWhiteSpace(query) || student.FullName.Contains(query, StringComparison.CurrentCultureIgnoreCase))
-                && (group == "Все группы" || student.Group.Equals(group, StringComparison.CurrentCultureIgnoreCase));
+            if (row.Tag is not Student student) continue;
+
+            row.Visible =
+                (string.IsNullOrWhiteSpace(query) ||
+                 student.FullName.Contains(query, StringComparison.CurrentCultureIgnoreCase)) &&
+                (group == "Все группы" ||
+                 student.Group.Equals(group, StringComparison.CurrentCultureIgnoreCase));
         }
     }
 
