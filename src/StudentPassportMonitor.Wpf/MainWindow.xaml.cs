@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<StudentRow> _students = [];
     private readonly ObservableCollection<AttentionItem> _attention = [];
     private readonly ObservableCollection<HistoryItem> _history = [];
+    private readonly ObservableCollection<AttentionItem> _dashboardAttention = [];
     private readonly System.Windows.Threading.DispatcherTimer _timer;
     private DateTime _lastObservedDate = DateTime.Today;
 
@@ -26,6 +27,7 @@ public partial class MainWindow : Window
             new StudentMergeService(), new StartupService());
         StudentsGrid.ItemsSource = _students;
         AttentionGrid.ItemsSource = _attention;
+        DashboardAttentionGrid.ItemsSource = _dashboardAttention;
         HistoryGrid.ItemsSource = _history;
         WarningDaysBox.Text = _controller.Settings.WarningDays.ToString(CultureInfo.InvariantCulture);
         StartupCheck.IsChecked = _controller.StartupEnabled;
@@ -54,6 +56,24 @@ public partial class MainWindow : Window
 
     private void Dashboard_Click(object sender, RoutedEventArgs e) => ShowPage(DashboardPage, "Обзор");
     private void Students_Click(object sender, RoutedEventArgs e) => ShowPage(StudentsPage, "Студенты");
+
+    private void DashboardAll_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        AttentionFilter.IsChecked = false;
+        ShowPage(StudentsPage, "Студенты");
+    }
+
+    private void DashboardAttention_Click(object sender, System.Windows.Input.MouseButtonEventArgs e) =>
+        ShowPage(NotificationsPage, "Уведомления");
+
+    private void DashboardAttentionButton_Click(object sender, RoutedEventArgs e) =>
+        ShowPage(NotificationsPage, "Уведомления");
+
+    private void DashboardAttentionGrid_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (DashboardAttentionGrid.SelectedItem is AttentionItem item)
+            EditStudent(item.Student);
+    }
     private void Notifications_Click(object sender, RoutedEventArgs e) => ShowPage(NotificationsPage, "Уведомления");
     private void Reports_Click(object sender, RoutedEventArgs e) => ShowPage(ReportsPage, "Отчёты");
     private void History_Click(object sender, RoutedEventArgs e) => ShowPage(HistoryPage, "История проверок");
@@ -87,9 +107,18 @@ public partial class MainWindow : Window
 
         RefreshStudents();
         _attention.Clear();
+        _dashboardAttention.Clear();
         foreach (PassportAlert alert in _controller.GetAttention(DateTime.Today))
-            _attention.Add(new AttentionItem(alert.Student, alert.DueDate.ToString("dd.MM.yyyy"),
-                alert.State, alert.Student.LastReviewedAt?.ToString("dd.MM.yyyy HH:mm") ?? "Не проверялся"));
+        {
+            var item = new AttentionItem(alert.Student, alert.DueDate.ToString("dd.MM.yyyy"),
+                alert.State, alert.Student.LastReviewedAt?.ToString("dd.MM.yyyy HH:mm") ?? "Не проверялся");
+            _attention.Add(item);
+            if (_dashboardAttention.Count < 8)
+                _dashboardAttention.Add(item);
+        }
+        DashboardAttentionSummary.Text = _attention.Count == 0
+            ? "Нет событий, требующих внимания"
+            : $"Требуют внимания: {_attention.Count}. Показаны первые {_dashboardAttention.Count}.";
 
         _history.Clear();
         foreach (CheckHistoryEntry item in _controller.GetHistory())
