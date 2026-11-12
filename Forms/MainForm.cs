@@ -26,6 +26,7 @@ public partial class MainForm : Form
         _settings.StartWithWindows = chkStartup.Checked;
 
         trayIcon.Visible = true;
+        RebuildGroups();
         RefreshDashboard();
         _dailyTimer.Interval = 60_000;
         _dailyTimer.Tick += (_, _) =>
@@ -120,7 +121,9 @@ public partial class MainForm : Form
                 }
             }
             _db.SaveStudents(_students);
+            RebuildGroups();
             RefreshDashboard();
+            ApplyFilter();
             MessageBox.Show($"Импортировано записей: {imported.Count}.", "Готово",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
