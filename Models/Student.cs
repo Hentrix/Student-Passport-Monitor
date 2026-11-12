@@ -13,6 +13,7 @@ public sealed class Student
     public DateTime? IssueDate { get; set; }
     public DateTime? BirthDate { get; set; }
     public string Status { get; set; } = "";
+    public DateTime? LastReviewedAt { get; set; }
     public DateTime? LastPassportReplacementDate { get; set; }
 
     public string FullName => string.Join(" ", new[] { LastName, FirstName, MiddleName }
