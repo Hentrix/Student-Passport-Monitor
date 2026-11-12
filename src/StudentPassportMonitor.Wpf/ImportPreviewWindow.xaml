@@ -1,0 +1,33 @@
+<Window x:Class="StudentPassportMonitor.Wpf.ImportPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Предварительный просмотр Excel" Width="960" Height="650"
+        MinWidth="690" MinHeight="450" WindowStartupLocation="CenterOwner"
+        Background="{StaticResource WindowBrush}" Foreground="{StaticResource TextBrush}" Language="ru-RU">
+  <DockPanel Margin="22">
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+      <TextBlock Text="Предварительный просмотр импорта" FontSize="23" FontWeight="SemiBold"/>
+      <TextBlock x:Name="FileNameText" Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis" Margin="0,8,0,0"/>
+      <TextBlock x:Name="SummaryText" TextWrapping="Wrap" Margin="0,14,0,0"/>
+      <TextBlock x:Name="WarningText" TextWrapping="Wrap" Foreground="#F5B768" Margin="0,7,0,0"/>
+    </StackPanel>
+    <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
+      <TextBlock Text="Объединение сохраняет существующие записи и вручную внесённые сведения. Замена полностью перезаписывает список студентов."
+                 TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,12"/>
+      <WrapPanel HorizontalAlignment="Right">
+        <Button Content="Отмена" Width="100" IsCancel="True" Click="Cancel_Click"/>
+        <Button Content="Объединить" Width="130" Background="{StaticResource AccentBrush}" Click="Merge_Click"/>
+        <Button Content="Заменить список" Width="155" Click="Replace_Click"/>
+      </WrapPanel>
+    </StackPanel>
+    <DataGrid x:Name="PreviewGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+      <DataGrid.Columns>
+        <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="ФИО" Binding="{Binding FullName}" Width="2*"/>
+        <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Группа" Binding="{Binding Group}" Width="*"/>
+        <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Факультет" Binding="{Binding Faculty}" Width="*"/>
+        <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Дата рождения" Binding="{Binding BirthDate, StringFormat=dd.MM.yyyy, TargetNullValue=—}" Width="*"/>
+        <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Паспорт" Binding="{Binding PassportNumber}" Width="*"/>
+      </DataGrid.Columns>
+    </DataGrid>
+  </DockPanel>
+</Window>
