@@ -105,13 +105,38 @@ public sealed class StudentMonitorController
             .OrderBy(s => s)
             .ToArray();
 
-    public int Import(string filePath, bool replace)
+    public sealed record ImportPreview(
+        IReadOnlyList<Student> Students, int MissingBirthDates, int MissingPassportNumbers);
+
+    public ImportPreview PreviewImport(string filePath)
     {
         List<Student> imported = _excel.Import(filePath);
-        List<Student> updated = replace ? imported : _merger.Merge(_students, imported);
+        return new ImportPreview(imported,
+            imported.Count(s => s.BirthDate is null),
+            imported.Count(s => string.IsNullOrWhiteSpace(s.PassportNumber)));
+    }
+
+    public int Import(ImportPreview preview, bool replace)
+    {
+        ArgumentNullException.ThrowIfNull(preview);
+        if (preview.Students.Count == 0)
+            throw new InvalidOperationException("Список для импорта пуст.");
+
+        List<Student> updated = replace
+            ? preview.Students.ToList()
+            : _merger.Merge(_students, preview.Students);
+        _storage.CreateBackup();
         _storage.SaveStudents(updated);
         _students = updated;
-        return imported.Count;
+        return preview.Students.Count;
+    }
+
+    public IReadOnlyList<string> ListBackups() => _storage.ListBackups();
+
+    public void RestoreBackup(string path)
+    {
+        _storage.RestoreBackup(path);
+        _students = _storage.LoadStudents();
     }
 
     public void SaveStudent(Student student)
