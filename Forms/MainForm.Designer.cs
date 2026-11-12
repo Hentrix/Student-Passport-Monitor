@@ -26,10 +26,31 @@ partial class MainForm
     private Label lblSelectedStudent = null!;
     private NotifyIcon trayIcon = null!;
     private ContextMenuStrip trayMenu = null!;
-
+    private ToolStripMenuItem trayOpen = null!;
+    private ToolStripMenuItem trayExit = null!;
+    private Label dashboardTitle = null!;
+    private Panel card1 = null!;
+    private Panel card2 = null!;
+    private Panel card3 = null!;
+    private Label card1Title = null!;
+    private Label card2Title = null!;
+    private Label card3Title = null!;
+    private Panel replacementPanel = null!;
+    private Label settingsTitle = null!;
+    private Label warningLabel = null!;
+    private TableLayoutPanel warningLayout = null!;
+    private Label note = null!;
+    private DataGridViewTextBoxColumn colName = null!;
+    private DataGridViewTextBoxColumn colGroup = null!;
+    private DataGridViewTextBoxColumn colFaculty = null!;
+    private DataGridViewTextBoxColumn colBirth = null!;
+    private DataGridViewTextBoxColumn colPassport = null!;
+    private DataGridViewTextBoxColumn colAge = null!;
+    private DataGridViewTextBoxColumn colDue = null!;
+    private DataGridViewTextBoxColumn colState = null!;
     protected override void Dispose(bool disposing)
     {
-        if (disposing && (components != null)) components.Dispose();
+        if (disposing && components != null) components.Dispose();
         base.Dispose(disposing);
     }
 
@@ -37,9 +58,9 @@ partial class MainForm
     {
         components = new System.ComponentModel.Container();
         tabs = new TabControl();
-        tabDashboard = new TabPage("Обзор");
-        tabStudents = new TabPage("Студенты");
-        tabSettings = new TabPage("Настройки");
+        tabDashboard = new TabPage();
+        tabStudents = new TabPage();
+        tabSettings = new TabPage();
         lblTotalValue = new Label();
         lblUpcomingValue = new Label();
         lblReviewValue = new Label();
@@ -58,27 +79,84 @@ partial class MainForm
         lblSelectedStudent = new Label();
         trayIcon = new NotifyIcon(components);
         trayMenu = new ContextMenuStrip(components);
-        var trayOpen = new ToolStripMenuItem("Открыть");
-        var trayExit = new ToolStripMenuItem("Выход");
-
-        SuspendLayout();
-        Text = "Student Passport Monitor";
-        StartPosition = FormStartPosition.CenterScreen;
-        MinimumSize = new Size(900, 600);
-        Size = new Size(1180, 760);
-        Font = new Font("Segoe UI", 9F);
-        BackColor = Color.FromArgb(245, 247, 250);
-
+        trayOpen = new ToolStripMenuItem();
+        trayExit = new ToolStripMenuItem();
+        dashboardTitle = new Label();
+        card1 = new Panel();
+        card2 = new Panel();
+        card3 = new Panel();
+        card1Title = new Label();
+        card2Title = new Label();
+        card3Title = new Label();
+        replacementPanel = new Panel();
+        settingsTitle = new Label();
+        warningLabel = new Label();
+        warningLayout = new TableLayoutPanel();
+        note = new Label();
+        colName = new DataGridViewTextBoxColumn();
+        colGroup = new DataGridViewTextBoxColumn();
+        colFaculty = new DataGridViewTextBoxColumn();
+        colBirth = new DataGridViewTextBoxColumn();
+        colPassport = new DataGridViewTextBoxColumn();
+        colAge = new DataGridViewTextBoxColumn();
+        colDue = new DataGridViewTextBoxColumn();
+        colState = new DataGridViewTextBoxColumn();
         tabs.Dock = DockStyle.Fill;
-        tabs.Controls.AddRange(new Control[] { tabDashboard, tabStudents, tabSettings });
-        tabs.Padding = new Point(16, 6);
-        Controls.Add(tabs);
-
+        tabs.Padding = new Padding(16, 6);
+        tabDashboard.Text = "Обзор";
         tabDashboard.BackColor = Color.White;
-        var dashboardTitle = new Label { Text = "Панель мониторинга", Font = new Font("Segoe UI", 20F, FontStyle.Bold), AutoSize = true, Location = new Point(28, 24) };
-        var card1 = MakeCard("Всего студентов", lblTotalValue, 30);
-        var card2 = MakeCard("Скоро контрольная дата", lblUpcomingValue, 300);
-        var card3 = MakeCard("Требуют проверки", lblReviewValue, 570);
+        tabDashboard.UseVisualStyleBackColor = false;
+        tabStudents.Text = "Студенты";
+        tabStudents.BackColor = Color.White;
+        tabStudents.UseVisualStyleBackColor = false;
+        tabSettings.Text = "Настройки";
+        tabSettings.BackColor = Color.White;
+        tabSettings.UseVisualStyleBackColor = false;
+        tabs.Controls.AddRange(new Control[] { tabDashboard, tabStudents, tabSettings });
+        Controls.Add(tabs);
+        dashboardTitle.Text = "Панель мониторинга";
+        dashboardTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
+        dashboardTitle.AutoSize = true;
+        dashboardTitle.Location = new Point(28, 24);
+        card1.Location = new Point(30, 100);
+        card1.Size = new Size(245, 100);
+        card1.BackColor = Color.FromArgb(246, 248, 251);
+        card1.BorderStyle = BorderStyle.FixedSingle;
+        card1Title.Text = "Всего студентов";
+        card1Title.Location = new Point(15, 15);
+        card1Title.AutoSize = true;
+        card1Title.ForeColor = Color.DimGray;
+        lblTotalValue.Text = "0";
+        lblTotalValue.Font = new Font("Segoe UI", 25F, FontStyle.Bold);
+        lblTotalValue.Location = new Point(15, 40);
+        lblTotalValue.AutoSize = true;
+        card1.Controls.AddRange(new Control[] { card1Title, lblTotalValue });
+        card2.Location = new Point(300, 100);
+        card2.Size = new Size(245, 100);
+        card2.BackColor = Color.FromArgb(246, 248, 251);
+        card2.BorderStyle = BorderStyle.FixedSingle;
+        card2Title.Text = "Скоро контрольная дата";
+        card2Title.Location = new Point(15, 15);
+        card2Title.AutoSize = true;
+        card2Title.ForeColor = Color.DimGray;
+        lblUpcomingValue.Text = "0";
+        lblUpcomingValue.Font = new Font("Segoe UI", 25F, FontStyle.Bold);
+        lblUpcomingValue.Location = new Point(15, 40);
+        lblUpcomingValue.AutoSize = true;
+        card2.Controls.AddRange(new Control[] { card2Title, lblUpcomingValue });
+        card3.Location = new Point(570, 100);
+        card3.Size = new Size(245, 100);
+        card3.BackColor = Color.FromArgb(246, 248, 251);
+        card3.BorderStyle = BorderStyle.FixedSingle;
+        card3Title.Text = "Требуют проверки";
+        card3Title.Location = new Point(15, 15);
+        card3Title.AutoSize = true;
+        card3Title.ForeColor = Color.DimGray;
+        lblReviewValue.Text = "0";
+        lblReviewValue.Font = new Font("Segoe UI", 25F, FontStyle.Bold);
+        lblReviewValue.Location = new Point(15, 40);
+        lblReviewValue.AutoSize = true;
+        card3.Controls.AddRange(new Control[] { card3Title, lblReviewValue });
         lblLastCheck.Location = new Point(34, 220);
         lblLastCheck.AutoSize = true;
         lblLastCheck.ForeColor = Color.DimGray;
@@ -87,27 +165,20 @@ partial class MainForm
         btnCheckNow.Size = new Size(170, 38);
         btnCheckNow.Click += btnCheckNow_Click;
         tabDashboard.Controls.AddRange(new Control[] { dashboardTitle, card1, card2, card3, lblLastCheck, btnCheckNow });
-
-        tabStudents.BackColor = Color.White;
         btnImport.Text = "Импорт Excel";
         btnImport.Location = new Point(22, 18);
         btnImport.Size = new Size(130, 34);
-        btnImport.Click += btnImport_Click;
         btnRefresh.Text = "Обновить";
         btnRefresh.Location = new Point(160, 18);
         btnRefresh.Size = new Size(100, 34);
-        btnRefresh.Click += btnRefresh_Click;
         txtSearch.PlaceholderText = "Поиск по ФИО...";
         txtSearch.Location = new Point(280, 20);
         txtSearch.Size = new Size(240, 30);
-        txtSearch.TextChanged += txtSearch_TextChanged;
         cmbGroup.DropDownStyle = ComboBoxStyle.DropDownList;
         cmbGroup.Location = new Point(535, 20);
         cmbGroup.Size = new Size(180, 30);
-        cmbGroup.Items.Add("Все группы");
+        cmbGroup.Items.AddRange(new object[] { "Все группы" });
         cmbGroup.SelectedIndex = 0;
-        cmbGroup.SelectedIndexChanged += cmbGroup_SelectedIndexChanged;
-
         dgvStudents.Location = new Point(22, 66);
         dgvStudents.Size = new Size(1090, 500);
         dgvStudents.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -121,14 +192,43 @@ partial class MainForm
         dgvStudents.RowHeadersVisible = false;
         dgvStudents.BackgroundColor = Color.White;
         dgvStudents.BorderStyle = BorderStyle.None;
-        dgvStudents.SelectionChanged += dgvStudents_SelectionChanged;
-        foreach (var header in new[] { "ФИО", "Группа", "Факультет", "Дата рождения", "Паспорт №", "Возраст", "Контрольная дата", "Состояние" })
-            dgvStudents.Columns.Add(header, header);
-        int[] widths = { 225, 110, 160, 125, 140, 75, 140, 200 };
-        for (int i = 0; i < dgvStudents.Columns.Count; i++)
-            dgvStudents.Columns[i].Width = widths[i];
-
-        var replacementPanel = new Panel { Location = new Point(22, 578), Size = new Size(1090, 55), Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right, BackColor = Color.FromArgb(246, 248, 251) };
+        colName.Name = "colName";
+        colName.HeaderText = "ФИО";
+        colName.Width = 225;
+        colName.ReadOnly = true;
+        colGroup.Name = "colGroup";
+        colGroup.HeaderText = "Группа";
+        colGroup.Width = 110;
+        colGroup.ReadOnly = true;
+        colFaculty.Name = "colFaculty";
+        colFaculty.HeaderText = "Факультет";
+        colFaculty.Width = 160;
+        colFaculty.ReadOnly = true;
+        colBirth.Name = "colBirth";
+        colBirth.HeaderText = "Дата рождения";
+        colBirth.Width = 125;
+        colBirth.ReadOnly = true;
+        colPassport.Name = "colPassport";
+        colPassport.HeaderText = "Паспорт №";
+        colPassport.Width = 140;
+        colPassport.ReadOnly = true;
+        colAge.Name = "colAge";
+        colAge.HeaderText = "Возраст";
+        colAge.Width = 75;
+        colAge.ReadOnly = true;
+        colDue.Name = "colDue";
+        colDue.HeaderText = "Контрольная дата";
+        colDue.Width = 140;
+        colDue.ReadOnly = true;
+        colState.Name = "colState";
+        colState.HeaderText = "Состояние";
+        colState.Width = 200;
+        colState.ReadOnly = true;
+        dgvStudents.Columns.AddRange(new DataGridViewColumn[] { colName, colGroup, colFaculty, colBirth, colPassport, colAge, colDue, colState });
+        replacementPanel.Location = new Point(22, 578);
+        replacementPanel.Size = new Size(1090, 55);
+        replacementPanel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        replacementPanel.BackColor = Color.FromArgb(246, 248, 251);
         lblSelectedStudent.Text = "Выберите студента";
         lblSelectedStudent.Location = new Point(12, 17);
         lblSelectedStudent.AutoSize = true;
@@ -138,29 +238,23 @@ partial class MainForm
         btnSaveReplacement.Text = "Сохранить дату замены";
         btnSaveReplacement.Location = new Point(645, 10);
         btnSaveReplacement.Size = new Size(190, 32);
-        btnSaveReplacement.Click += btnSaveReplacement_Click;
         replacementPanel.Controls.AddRange(new Control[] { lblSelectedStudent, txtReplacementDate, btnSaveReplacement });
         tabStudents.Controls.AddRange(new Control[] { btnImport, btnRefresh, txtSearch, cmbGroup, dgvStudents, replacementPanel });
-
-        tabSettings.BackColor = Color.White;
-        var settingsTitle = new Label { Text = "Параметры мониторинга", Font = new Font("Segoe UI", 18F, FontStyle.Bold), AutoSize = true, Location = new Point(28, 28) };
-        var warningLabel = new Label
-        {
-            Text = "Предупреждать за (дней):",
-            AutoSize = true,
-            Anchor = AnchorStyles.Left,
-            Margin = new Padding(0, 0, 18, 0)
-        };
-        var warningLayout = new TableLayoutPanel
-        {
-            Location = new Point(34, 92),
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            ColumnCount = 2,
-            RowCount = 1,
-            Margin = Padding.Empty,
-            Padding = Padding.Empty
-        };
+        settingsTitle.Text = "Параметры мониторинга";
+        settingsTitle.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
+        settingsTitle.AutoSize = true;
+        settingsTitle.Location = new Point(28, 28);
+        warningLabel.Text = "Предупреждать за (дней):";
+        warningLabel.AutoSize = true;
+        warningLabel.Anchor = AnchorStyles.Left;
+        warningLabel.Margin = new Padding(0, 0, 18, 0);
+        warningLayout.Location = new Point(34, 92);
+        warningLayout.AutoSize = true;
+        warningLayout.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        warningLayout.ColumnCount = 2;
+        warningLayout.RowCount = 1;
+        warningLayout.Margin = Padding.Empty;
+        warningLayout.Padding = Padding.Empty;
         warningLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         warningLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         warningLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -178,33 +272,33 @@ partial class MainForm
         btnSaveSettings.Text = "Сохранить настройки";
         btnSaveSettings.Location = new Point(34, 205);
         btnSaveSettings.Size = new Size(190, 38);
-        btnSaveSettings.Click += btnSaveSettings_Click;
-        var note = new Label { Text = "Приложение проверяет даты рождения при работе в фоне (в системном трее).\nВозрастные рубежи — напоминание проверить документ, а не подтверждение просрочки.", AutoSize = true, Location = new Point(34, 280), ForeColor = Color.DimGray };
+        note.Text = "Приложение проверяет даты рождения при работе в фоне (в системном трее).\\nВозрастные рубежи — напоминание проверить документ, а не подтверждение просрочки.";
+        note.AutoSize = true;
+        note.Location = new Point(34, 280);
+        note.ForeColor = Color.DimGray;
         tabSettings.Controls.AddRange(new Control[] { settingsTitle, warningLayout, chkStartup, btnSaveSettings, note });
-
+        trayOpen.Text = "Открыть";
+        trayExit.Text = "Выход";
         trayMenu.Items.AddRange(new ToolStripItem[] { trayOpen, trayExit });
-        trayOpen.Click += trayOpen_Click;
-        trayExit.Click += trayExit_Click;
         trayIcon.Text = "Student Passport Monitor";
         trayIcon.Icon = SystemIcons.Application;
         trayIcon.ContextMenuStrip = trayMenu;
-        trayIcon.DoubleClick += trayOpen_Click;
-        ResumeLayout(false);
-    }
-
-    private static Panel MakeCard(string caption, Label value, int x)
-    {
-        var panel = new Panel
-        {
-            Location = new Point(x, 100), Size = new Size(245, 100),
-            BackColor = Color.FromArgb(246, 248, 251), BorderStyle = BorderStyle.FixedSingle
-        };
-        var title = new Label { Text = caption, Location = new Point(15, 15), AutoSize = true, ForeColor = Color.DimGray };
-        value.Text = "0";
-        value.Font = new Font("Segoe UI", 25F, FontStyle.Bold);
-        value.Location = new Point(15, 40);
-        value.AutoSize = true;
-        panel.Controls.AddRange(new Control[] { title, value });
-        return panel;
+btnImport.Click += btnImport_Click;
+btnRefresh.Click += btnRefresh_Click;
+txtSearch.TextChanged += txtSearch_TextChanged;
+cmbGroup.SelectedIndexChanged += cmbGroup_SelectedIndexChanged;
+dgvStudents.SelectionChanged += dgvStudents_SelectionChanged;
+btnSaveReplacement.Click += btnSaveReplacement_Click;
+btnSaveSettings.Click += btnSaveSettings_Click;
+trayOpen.Click += trayOpen_Click;
+trayExit.Click += trayExit_Click;
+trayIcon.DoubleClick += trayOpen_Click;
+        this.Text = "Student Passport Monitor";
+        this.StartPosition = FormStartPosition.CenterScreen;
+        this.MinimumSize = new Size(900, 600);
+        this.Size = new Size(1180, 760);
+        this.Font = new Font("Segoe UI", 9F);
+        this.BackColor = Color.FromArgb(245, 247, 250);
+        this.AutoScaleMode = AutoScaleMode.Font;
     }
 }
