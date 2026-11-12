@@ -15,5 +15,7 @@
     <Compile Include="../../Models/Student.cs" Link="Models/Student.cs" />
     <Compile Include="../../Services/PassportExpirationService.cs" Link="Services/PassportExpirationService.cs" />
     <Compile Include="../../Services/StudentMergeService.cs" Link="Services/StudentMergeService.cs" />
+    <Compile Include="../../Services/JsonDatabaseService.cs" Link="Services/JsonDatabaseService.cs" />
+    <Compile Include="../../Models/AppSettings.cs" Link="Models/AppSettings.cs" />
   </ItemGroup>
 </Project>

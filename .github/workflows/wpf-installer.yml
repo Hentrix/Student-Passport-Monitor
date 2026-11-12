@@ -1,0 +1,61 @@
+name: Установщик WPF 2.0 (ручная сборка)
+
+# Не запускается при каждом коммите в dev.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installer:
+    name: Проверка и сборка установщика WPF
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Модульные тесты
+        run: dotnet test tests/StudentPassportMonitor.Tests/StudentPassportMonitor.Tests.csproj -c Release
+      - name: Опубликовать WPF для Windows x64
+        shell: pwsh
+        run: |
+          dotnet publish src/StudentPassportMonitor.Wpf/StudentPassportMonitor.Wpf.csproj `
+            -c Release -r win-x64 --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -o artifacts/wpf-publish
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (!(Test-Path artifacts/wpf-publish/StudentPassportMonitor.Wpf.exe)) {
+            throw "Исполняемый файл WPF не найден"
+          }
+      - name: Установить Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+      - name: Собрать установщик WPF
+        shell: pwsh
+        run: |
+          $props = [xml](Get-Content Directory.Build.props)
+          $version = $props.Project.PropertyGroup.VersionPrefix
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) { throw "Inno Setup не найден" }
+          & $iscc `
+            "/DAppVersion=$version" `
+            "/DAppExe=StudentPassportMonitor.Wpf.exe" `
+            "/DPublishDir=$((Resolve-Path artifacts/wpf-publish).Path)" `
+            "/DOutputDir=$((Join-Path $PWD 'artifacts/wpf-installer'))" `
+            installer/StudentPassportMonitor.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem artifacts/wpf-installer/*.exe |
+            Get-FileHash -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash)  $([IO.Path]::GetFileName($_.Path))" } |
+            Set-Content artifacts/wpf-installer/SHA256SUMS.txt
+      - name: Загрузить установщик
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-passport-monitor-wpf-installer
+          path: |
+            artifacts/wpf-installer/*.exe
+            artifacts/wpf-installer/SHA256SUMS.txt
+          if-no-files-found: error

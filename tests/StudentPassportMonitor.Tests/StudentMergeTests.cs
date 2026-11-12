@@ -40,4 +40,39 @@ public sealed class StudentMergeTests
             [new Student { LastName = "Другой", FirstName = "Б", Group = "1" }]);
         Assert.Equal(2, result.Count);
     }
+
+    [Fact]
+    public void RemoveDuplicatesIgnoresCaseAndExtraWhitespace()
+    {
+        var first = new Student { LastName = "Иванов", FirstName = "Иван", Group = "ПО-41" };
+        var duplicate = new Student { LastName = "  иванов ", FirstName = "ИВАН", Group = " ПО-41 " };
+        var another = new Student { LastName = "Иванов", FirstName = "Иван", Group = "ПО-42" };
+
+        var result = StudentMergeService.RemoveDuplicates([first, duplicate, another]);
+
+        Assert.Equal(2, result.Count);
+        Assert.Same(first, result[0]);
+        Assert.Same(another, result[1]);
+    }
+
+    [Fact]
+    public void RemoveDuplicatesKeepsFirstRecord()
+    {
+        var first = new Student { LastName = "Тестов", FirstName = "Иван", Group = "А-1", PassportNumber = "FIRST" };
+        var second = new Student { LastName = "Тестов", FirstName = "Иван", Group = "А-1", PassportNumber = "SECOND" };
+
+        var result = StudentMergeService.RemoveDuplicates([first, second]);
+
+        Assert.Single(result);
+        Assert.Equal("FIRST", result[0].PassportNumber);
+    }
+
+    [Fact]
+    public void MergeDoesNotRemoveStudentsWhenImportIsEmpty()
+    {
+        var existing = new Student { LastName = "Тестов", FirstName = "Иван", Group = "А-1" };
+        var result = new StudentMergeService().Merge([existing], Array.Empty<Student>());
+        Assert.Single(result);
+        Assert.Same(existing, result[0]);
+    }
 }

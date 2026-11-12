@@ -10,16 +10,21 @@ public sealed class JsonDatabaseService
         WriteIndented = true
     };
 
-    private readonly string _directory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "StudentPassportMonitor");
+    private readonly string _directory;
 
     private string BackupsPath => Path.Combine(_directory, "backups");
     private string StudentsPath => Path.Combine(_directory, "students.json");
     private string HistoryPath => Path.Combine(_directory, "check-history.json");
     private string SettingsPath => Path.Combine(_directory, "settings.json");
 
-    public JsonDatabaseService() => Directory.CreateDirectory(_directory);
+    // Путь можно подменить в тестах, не затрагивая настоящую базу пользователя.
+    public JsonDatabaseService(string? dataDirectory = null)
+    {
+        _directory = Path.GetFullPath(dataDirectory ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "StudentPassportMonitor"));
+        Directory.CreateDirectory(_directory);
+    }
 
     public List<Student> LoadStudents() => Read<List<Student>>(StudentsPath) ?? [];
     public AppSettings LoadSettings() => Read<AppSettings>(SettingsPath) ?? new();

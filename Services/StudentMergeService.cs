@@ -4,6 +4,19 @@ namespace StudentPassportMonitor.Services;
 
 public sealed class StudentMergeService
 {
+    // Один студент определяется по ФИО и группе, независимо от регистра и лишних пробелов.
+    public static string GetKey(Student student) =>
+        string.Join("|", Normalize(student.LastName), Normalize(student.FirstName),
+            Normalize(student.MiddleName), Normalize(student.Group));
+
+    public static List<Student> RemoveDuplicates(IEnumerable<Student> students)
+    {
+        ArgumentNullException.ThrowIfNull(students);
+        var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // Сохраняем первую запись: повторные строки не должны затирать её данные.
+        return students.Where(student => keys.Add(GetKey(student))).ToList();
+    }
+
     public List<Student> Merge(IEnumerable<Student> existing, IEnumerable<Student> imported)
     {
         ArgumentNullException.ThrowIfNull(existing);
@@ -46,13 +59,6 @@ public sealed class StudentMergeService
         return result;
     }
 
-    private static string GetKey(Student student) =>
-        string.Join("|",
-            Normalize(student.LastName),
-            Normalize(student.FirstName),
-            Normalize(student.MiddleName),
-            Normalize(student.Group));
-
     private static string Normalize(string? value) =>
-        (value ?? string.Empty).Trim().ToUpperInvariant();
+        string.Join(" ", (value ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
 }

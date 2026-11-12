@@ -71,20 +71,19 @@ jobs:
           }
 
       - name: Собрать приложение
-        run: dotnet build StudentPassportMonitor.csproj --configuration Release -p:Platform=x64
+        run: dotnet build src/StudentPassportMonitor.Wpf/StudentPassportMonitor.Wpf.csproj --configuration Release
 
       # Публикация и установщик нужны только для релиза.
       - name: Опубликовать автономную сборку
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh
         run: |
-          dotnet publish StudentPassportMonitor.csproj `
+          dotnet publish src/StudentPassportMonitor.Wpf/StudentPassportMonitor.Wpf.csproj `
             --configuration Release `
             --runtime win-x64 `
             --self-contained true `
             -p:PublishSingleFile=true `
             -p:IncludeNativeLibrariesForSelfExtract=true `
-            -p:Platform=x64 `
             --output artifacts/publish
 
       - name: Установить Inno Setup
@@ -106,6 +105,7 @@ jobs:
 
           & $iscc `
             "/DAppVersion=$version" `
+            "/DAppExe=StudentPassportMonitor.Wpf.exe" `
             "/DPublishDir=$((Resolve-Path artifacts/publish).Path)" `
             "/DOutputDir=$((Join-Path $PWD 'artifacts/installer'))" `
             installer/StudentPassportMonitor.iss
