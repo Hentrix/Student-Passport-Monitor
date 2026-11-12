@@ -12,7 +12,7 @@ public sealed class StartupService
         using var key = Registry.CurrentUser.OpenSubKey(RunKey, true)
             ?? Registry.CurrentUser.CreateSubKey(RunKey);
         if (enabled)
-            key.SetValue(AppName, $"\"{Application.ExecutablePath}\"");
+            key.SetValue(AppName, $"\"{Environment.ProcessPath ?? throw new InvalidOperationException("Не удалось определить путь к приложению.")}\"");
         else
             key.DeleteValue(AppName, false);
     }
