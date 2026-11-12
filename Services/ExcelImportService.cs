@@ -100,30 +100,29 @@ public sealed class ExcelImportService
         headerRow = -1;
         columns = new Dictionary<string, int>();
 
-        // University exports often have a title and several empty rows before the table.
+        // Some exports use two-level merged headings. Find the row containing
+        // the student name, then resolve each field from the nearby header rows.
         for (int rowIndex = 0; rowIndex < Math.Min(table.Rows.Count, 100); rowIndex++)
         {
-            var candidate = new Dictionary<string, int>();
-
-            for (int columnIndex = 0; columnIndex < table.Columns.Count; columnIndex++)
-            {
-                string cell = Normalize(Convert.ToString(table.Rows[rowIndex][columnIndex]));
-                if (cell.Length == 0) continue;
-
-                foreach (var (field, aliases) in HeaderAliases)
-                {
-                    if (aliases.Any(alias => cell == alias ||
-                        cell.StartsWith(alias + " ", StringComparison.Ordinal)))
-                    {
-                        candidate.TryAdd(field, columnIndex);
-                        break;
-                    }
-                }
-            }
-
-            if (!candidate.ContainsKey("FullName") &&
-                !(candidate.ContainsKey("LastName") && candidate.ContainsKey("FirstName")))
+            var candidate = MatchColumns(table.Rows[rowIndex], table.Columns.Count);
+            bool hasName = candidate.ContainsKey("FullName") ||
+                (candidate.ContainsKey("LastName") && candidate.ContainsKey("FirstName"));
+            if (!hasName)
                 continue;
+
+            // Supplement the name header with adjacent subheaders, but never
+            // use a data row as a header.
+            var previous = rowIndex > 0
+                ? MatchColumns(table.Rows[rowIndex - 1], table.Columns.Count)
+                : new Dictionary<string, int>();
+            var next = rowIndex + 1 < table.Rows.Count
+                ? MatchColumns(table.Rows[rowIndex + 1], table.Columns.Count)
+                : new Dictionary<string, int>();
+
+            foreach (var (field, index) in previous)
+                candidate.TryAdd(field, index);
+            foreach (var (field, index) in next)
+                candidate.TryAdd(field, index);
 
             headerRow = rowIndex;
             columns = candidate;
@@ -131,6 +130,29 @@ public sealed class ExcelImportService
         }
 
         return false;
+    }
+
+    private static Dictionary<string, int> MatchColumns(DataRow row, int columnCount)
+    {
+        var result = new Dictionary<string, int>();
+
+        for (int columnIndex = 0; columnIndex < columnCount; columnIndex++)
+        {
+            string cell = Normalize(Convert.ToString(row[columnIndex]));
+            if (cell.Length == 0) continue;
+
+            foreach (var (field, aliases) in HeaderAliases)
+            {
+                if (!aliases.Any(alias => cell == alias ||
+                    cell.StartsWith(alias + " ", StringComparison.Ordinal)))
+                    continue;
+
+                result.TryAdd(field, columnIndex);
+                break;
+            }
+        }
+
+        return result;
     }
 
     private static string Normalize(string? value)
