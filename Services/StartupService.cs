@@ -12,7 +12,7 @@ public sealed class StartupService
         using var key = Registry.CurrentUser.OpenSubKey(RunKey, true)
             ?? Registry.CurrentUser.CreateSubKey(RunKey);
         if (enabled)
-            key.SetValue(AppName, $"\"{System.Windows.Forms.Application.ExecutablePath}\"");
+            key.SetValue(AppName, $"\"{Application.ExecutablePath}\"");
         else
             key.DeleteValue(AppName, false);
     }
