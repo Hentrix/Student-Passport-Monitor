@@ -1,3 +1,4 @@
+#nullable enable
 namespace StudentPassportMonitor.Forms;
 
 partial class MainForm
