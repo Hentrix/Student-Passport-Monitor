@@ -3,7 +3,7 @@ using StudentPassportMonitor.Models;
 
 namespace StudentPassportMonitor.Forms;
 
-// Self-contained editor; no persistence or business rules in the UI.
+// Редактор карточки не отвечает за сохранение данных и бизнес-логику.
 public sealed class StudentEditorForm : Form
 {
     private readonly Dictionary<string, TextBox> _fields = new();
@@ -104,7 +104,7 @@ public sealed class StudentEditorForm : Form
         {
             "Учащийся", "Академический отпуск", "Отчислен", "Выпускник"
         });
-        // Preserve values from previously imported spreadsheets.
+        // Сохраняем значения, ранее загруженные из таблиц Excel.
         if (!string.IsNullOrWhiteSpace(current) && !_statusBox.Items.Contains(current))
             _statusBox.Items.Add(current);
         _statusBox.SelectedItem = string.IsNullOrWhiteSpace(current)
