@@ -254,12 +254,9 @@ public partial class MainWindow : Window
         {
             var preview = _controller.PreviewImport(dialog.FileName);
             if (preview.Students.Count == 0) { MessageBox.Show(this, "В файле нет студентов."); return; }
-            var answer = MessageBox.Show(this,
-                $"Найдено студентов: {preview.Students.Count}\nБез даты рождения: {preview.MissingBirthDates}\n" +
-                $"Без номера паспорта: {preview.MissingPassportNumbers}\n\nДа — заменить список. Нет — объединить.",
-                "Предпросмотр импорта", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-            if (answer == MessageBoxResult.Cancel) return;
-            _controller.Import(preview, answer == MessageBoxResult.Yes);
+            var previewWindow = new ImportPreviewWindow(preview, dialog.FileName) { Owner = this };
+            if (previewWindow.ShowDialog() != true) return;
+            _controller.Import(preview, previewWindow.ReplaceExisting);
             RefreshAll();
         }
         catch (Exception ex) { ShowError(ex); }
