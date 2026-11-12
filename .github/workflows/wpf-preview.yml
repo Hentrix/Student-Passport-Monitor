@@ -1,0 +1,46 @@
+name: Проверка WPF 2.0
+
+on:
+  push:
+    branches: ['dev/v2.0.0']
+    paths:
+      - 'src/**'
+      - 'Core/**'
+      - 'Models/**'
+      - 'Services/**'
+      - 'StudentPassportMonitor.csproj'
+      - 'Directory.Build.props'
+      - 'assets/**'
+      - 'scripts/**'
+      - '.github/workflows/wpf-preview.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'Core/**'
+      - 'Models/**'
+      - 'Services/**'
+      - 'Directory.Build.props'
+      - '.github/workflows/wpf-preview.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Проверить логику мониторинга
+        run: dotnet test tests/StudentPassportMonitor.Tests/StudentPassportMonitor.Tests.csproj -c Release
+      - name: Собрать WPF 2.0
+        run: dotnet build src/StudentPassportMonitor.Wpf/StudentPassportMonitor.Wpf.csproj -c Release
+      - name: Собрать WinForms 1.x
+        run: dotnet build StudentPassportMonitor.csproj -c Release
