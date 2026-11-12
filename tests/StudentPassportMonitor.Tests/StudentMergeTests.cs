@@ -33,6 +33,31 @@ public sealed class StudentMergeTests
     }
 
     [Fact]
+    public void ImportDoesNotOverwriteManuallyEnteredPassportDetails()
+    {
+        var issued = new DateTime(2024, 5, 10);
+        var existing = new Student
+        {
+            LastName = "Иванов", FirstName = "Иван", Group = "ПО-41",
+            PassportNumber = "1234 567890", IssuedBy = "МВД России",
+            IssueDate = issued
+        };
+        var imported = new Student
+        {
+            LastName = "Иванов", FirstName = "Иван", Group = "ПО-41",
+            PassportNumber = "9999 999999", IssuedBy = "Другое ведомство",
+            IssueDate = new DateTime(2025, 6, 1)
+        };
+
+        var merged = new StudentMergeService().Merge([existing], [imported]);
+
+        Assert.Single(merged);
+        Assert.Equal("1234 567890", merged[0].PassportNumber);
+        Assert.Equal("МВД России", merged[0].IssuedBy);
+        Assert.Equal(issued, merged[0].IssueDate);
+    }
+
+    [Fact]
     public void NewStudentIsAppended()
     {
         var result = new StudentMergeService().Merge(
