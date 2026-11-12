@@ -100,7 +100,7 @@ public sealed class ExcelReportService
         sheet.PageSetup.SetRowsToRepeatAtTop(1, 4);
         sheet.Range(4, 1, Math.Max(4, rows.Length + 4), 9).SetAutoFilter();
 
-        // Save only after the workbook has been constructed successfully.
+        // Сохраняем файл только после успешного формирования книги Excel.
         string fullPath = Path.GetFullPath(path);
         string directory = Path.GetDirectoryName(fullPath)!;
         Directory.CreateDirectory(directory);
@@ -125,7 +125,7 @@ public sealed class ExcelReportService
         cell.Style.DateFormat.Format = withTime ? "dd.mm.yyyy hh:mm" : "dd.mm.yyyy";
     }
 
-    // Avoid spreadsheet formula injection from imported names and other text.
+    // Защищаем таблицу от внедрения формул через импортированные имена и другие текстовые поля.
     private static string SafeText(string? value)
     {
         string text = value ?? "";
