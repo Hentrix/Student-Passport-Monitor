@@ -133,14 +133,24 @@ public sealed class StudentMonitorController
             .ToArray();
 
     public sealed record ImportPreview(
-        IReadOnlyList<Student> Students, int MissingBirthDates, int MissingPassportNumbers);
+        IReadOnlyList<Student> Students, int MissingBirthDates, int MissingPassportNumbers,
+        int DuplicateRows, int ExistingMatches, int NewStudents);
+
+    private static string ImportKey(Student student) =>
+        string.Join("|", new[] { student.LastName, student.FirstName, student.MiddleName, student.Group }
+            .Select(value => (value ?? "").Trim().ToUpperInvariant()));
 
     public ImportPreview PreviewImport(string filePath)
     {
         List<Student> imported = _excel.Import(filePath);
+        var existing = _students.Select(ImportKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var distinct = imported.Select(ImportKey).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         return new ImportPreview(imported,
             imported.Count(s => s.BirthDate is null),
-            imported.Count(s => string.IsNullOrWhiteSpace(s.PassportNumber)));
+            imported.Count(s => string.IsNullOrWhiteSpace(s.PassportNumber)),
+            imported.Count - distinct.Length,
+            distinct.Count(existing.Contains),
+            distinct.Count(key => !existing.Contains(key)));
     }
 
     public int Import(ImportPreview preview, bool replace)
