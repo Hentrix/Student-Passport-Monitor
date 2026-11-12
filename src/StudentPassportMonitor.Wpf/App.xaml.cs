@@ -9,7 +9,7 @@ namespace StudentPassportMonitor.Wpf;
 
 public partial class App : Application
 {
-    private static readonly Brush CalendarText = new SolidColorBrush(Color.FromRgb(31, 35, 53));
+    private static readonly Brush CalendarText = new SolidColorBrush(Color.FromRgb(244, 243, 250));
 
     public App()
     {
@@ -60,13 +60,9 @@ public partial class App : Application
 
             // Состояния выбранного дня и недоступных дат сохраняет WPF.
             // Исправляем только обычный текст, который иначе почти белый.
-            if (child is CalendarDayButton day && !day.IsSelected)
-                day.Foreground = CalendarText;
-            else if (child is CalendarButton monthOrYear)
-                monthOrYear.Foreground = CalendarText;
-            else if (child is TextBlock text)
+            if (child is TextBlock text)
                 text.Foreground = CalendarText;
-            else if (child is Button button && child is not CalendarDayButton)
+            else if (child is Button button && child is not CalendarDayButton && child is not CalendarButton)
                 button.Foreground = CalendarText;
 
             ApplyCalendarTextColor(child);
