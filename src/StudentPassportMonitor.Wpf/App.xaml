@@ -299,6 +299,14 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- Единое вертикальное выравнивание текстовых ячеек. -->
+    <Style x:Key="CenteredDataGridText" TargetType="TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+      <Setter Property="TextAlignment" Value="Left"/>
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
     <Style TargetType="DataGridColumnHeader">
       <Setter Property="Background" Value="{StaticResource HeaderBrush}"/>
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
