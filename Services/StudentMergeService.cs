@@ -27,7 +27,7 @@ public sealed class StudentMergeService
 
             Student previous = result[position];
             student.Id = previous.Id;
-            // Spreadsheet imports must not erase manually maintained data.
+            // Импорт из Excel не должен стирать сведения, внесённые вручную.
             student.LastPassportReplacementDate = previous.LastPassportReplacementDate;
             student.LastReviewedAt = previous.LastReviewedAt;
             student.BirthDate ??= previous.BirthDate;
