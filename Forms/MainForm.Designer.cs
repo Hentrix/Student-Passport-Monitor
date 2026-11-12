@@ -8,6 +8,13 @@ partial class MainForm
     private TabPage tabDashboard = null!;
     private TabPage tabStudents = null!;
     private TabPage tabSettings = null!;
+    private TabPage tabNotifications = null!;
+    private DataGridView dgvNotifications = null!;
+    private ListBox lstCheckHistory = null!;
+    private Button btnMarkReviewed = null!;
+    private Button btnOpenAttentionStudent = null!;
+    private Button btnRefreshAttention = null!;
+    private Label lblAttentionHint = null!;
     private Label lblTotalValue = null!;
     private Label lblUpcomingValue = null!;
     private Label lblReviewValue = null!;
@@ -66,6 +73,13 @@ partial class MainForm
         tabDashboard = new TabPage();
         tabStudents = new TabPage();
         tabSettings = new TabPage();
+        tabNotifications = new TabPage();
+        dgvNotifications = new DataGridView();
+        lstCheckHistory = new ListBox();
+        btnMarkReviewed = new Button();
+        btnOpenAttentionStudent = new Button();
+        btnRefreshAttention = new Button();
+        lblAttentionHint = new Label();
         lblTotalValue = new Label();
         lblUpcomingValue = new Label();
         lblReviewValue = new Label();
@@ -122,7 +136,49 @@ partial class MainForm
         tabSettings.Text = "Настройки";
         tabSettings.BackColor = Color.White;
         tabSettings.UseVisualStyleBackColor = false;
-        tabs.Controls.AddRange(new Control[] { tabDashboard, tabStudents, tabSettings });
+        tabNotifications.Text = "Уведомления";
+        tabNotifications.BackColor = Color.White;
+        tabNotifications.UseVisualStyleBackColor = false;
+        tabs.Controls.AddRange(new Control[] { tabDashboard, tabStudents, tabNotifications, tabSettings });
+
+        lblAttentionHint.Text = "Контрольные даты паспортов. Отметка проверки не подтверждает замену документа.";
+        lblAttentionHint.AutoSize = true;
+        lblAttentionHint.Location = new Point(22, 22);
+        btnRefreshAttention.Text = "Обновить";
+        btnRefreshAttention.Location = new Point(22, 58);
+        btnRefreshAttention.Size = new Size(115, 34);
+        btnRefreshAttention.Click += btnRefreshAttention_Click;
+        btnOpenAttentionStudent.Text = "Открыть карточку";
+        btnOpenAttentionStudent.Location = new Point(147, 58);
+        btnOpenAttentionStudent.Size = new Size(160, 34);
+        btnOpenAttentionStudent.Click += btnOpenAttentionStudent_Click;
+        btnMarkReviewed.Text = "Отметить проверенным";
+        btnMarkReviewed.Location = new Point(317, 58);
+        btnMarkReviewed.Size = new Size(195, 34);
+        btnMarkReviewed.Click += btnMarkReviewed_Click;
+        dgvNotifications.Location = new Point(22, 108);
+        dgvNotifications.Size = new Size(1330, 420);
+        dgvNotifications.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        dgvNotifications.ReadOnly = true;
+        dgvNotifications.AllowUserToAddRows = false;
+        dgvNotifications.AllowUserToDeleteRows = false;
+        dgvNotifications.MultiSelect = false;
+        dgvNotifications.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        dgvNotifications.RowHeadersVisible = false;
+        dgvNotifications.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        dgvNotifications.Columns.Add("attentionName", "Студент");
+        dgvNotifications.Columns.Add("attentionGroup", "Группа");
+        dgvNotifications.Columns.Add("attentionDue", "Дата рубежа");
+        dgvNotifications.Columns.Add("attentionState", "Состояние");
+        dgvNotifications.Columns.Add("attentionReviewed", "Последняя проверка");
+        dgvNotifications.CellDoubleClick += dgvNotifications_CellDoubleClick;
+        lstCheckHistory.Location = new Point(22, 572);
+        lstCheckHistory.Size = new Size(1330, 180);
+        lstCheckHistory.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        tabNotifications.Controls.AddRange(new Control[] {
+            lblAttentionHint, btnRefreshAttention, btnOpenAttentionStudent,
+            btnMarkReviewed, dgvNotifications, lstCheckHistory
+        });
         Controls.Add(tabs);
         dashboardTitle.Text = "Панель мониторинга";
         dashboardTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
