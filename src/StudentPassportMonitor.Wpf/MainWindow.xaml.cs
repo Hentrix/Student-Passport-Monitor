@@ -303,18 +303,73 @@ public partial class MainWindow : Window
         if (backups.Count == 0) { MessageBox.Show(this, "Резервных копий нет."); return; }
         var picker = new Window
         {
-            Title = "Восстановление базы", Width = 640, Height = 380,
-            Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Background = System.Windows.Media.Brushes.White
+            Title = "Восстановление базы",
+            Width = 680,
+            Height = 420,
+            MinWidth = 480,
+            MinHeight = 320,
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = (System.Windows.Media.Brush)FindResource("WindowBrush"),
+            Foreground = (System.Windows.Media.Brush)FindResource("TextBrush")
         };
-        var panel = new DockPanel { Margin = new Thickness(16) };
-        var list = new ListBox { ItemsSource = backups };
-        var restore = new Button { Content = "Восстановить", Height = 42, Margin = new Thickness(0, 12, 0, 0) };
-        DockPanel.SetDock(restore, Dock.Bottom);
-        panel.Children.Add(restore);
+        var panel = new DockPanel { Margin = new Thickness(20) };
+        var title = new TextBlock
+        {
+            Text = "Выберите резервную копию",
+            FontSize = 20,
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        DockPanel.SetDock(title, Dock.Top);
+        panel.Children.Add(title);
+        var hint = new TextBlock
+        {
+            Text = "Перед восстановлением текущая база будет сохранена.",
+            Foreground = (System.Windows.Media.Brush)FindResource("MutedBrush"),
+            Margin = new Thickness(0, 0, 0, 16),
+            TextWrapping = TextWrapping.Wrap
+        };
+        DockPanel.SetDock(hint, Dock.Top);
+        panel.Children.Add(hint);
+        var actions = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
+            Margin = new Thickness(0, 16, 0, 0)
+        };
+        var cancel = new Button { Content = "Отмена", MinWidth = 110, IsCancel = true };
+        cancel.Click += (_, _) => picker.DialogResult = false;
+        var restore = new Button
+        {
+            Content = "Восстановить", MinWidth = 140,
+            Background = (System.Windows.Media.Brush)FindResource("AccentBrush"),
+            IsEnabled = false
+        };
+        actions.Children.Add(cancel);
+        actions.Children.Add(restore);
+        DockPanel.SetDock(actions, Dock.Bottom);
+        panel.Children.Add(actions);
+        var list = new ListBox
+        {
+            ItemsSource = backups,
+            Background = (System.Windows.Media.Brush)FindResource("InputBrush"),
+            Foreground = (System.Windows.Media.Brush)FindResource("TextBrush"),
+            BorderBrush = (System.Windows.Media.Brush)FindResource("BorderBrush"),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(8)
+        };
+        list.SelectionChanged += (_, _) => restore.IsEnabled = list.SelectedItem is not null;
+        list.MouseDoubleClick += (_, _) =>
+        {
+            if (list.SelectedItem is not null) picker.DialogResult = true;
+        };
+        restore.Click += (_, _) =>
+        {
+            if (list.SelectedItem is not null) picker.DialogResult = true;
+        };
         panel.Children.Add(list);
         picker.Content = panel;
-        restore.Click += (_, _) => { if (list.SelectedItem is not null) picker.DialogResult = true; };
         if (picker.ShowDialog() != true || list.SelectedItem is not string path) return;
         if (MessageBox.Show(this, "Восстановить выбранную копию? Текущая база будет сохранена в резервную копию.",
             "Подтверждение", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
