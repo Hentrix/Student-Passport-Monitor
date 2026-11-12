@@ -112,12 +112,12 @@
           </Grid>
           <DataGrid x:Name="StudentsGrid" Grid.Row="2" SelectionMode="Single" MouseDoubleClick="StudentsGrid_DoubleClick">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" Width="2*"/>
-              <DataGridTextColumn Header="Группа" Binding="{Binding Group}"/>
-              <DataGridTextColumn Header="Факультет" Binding="{Binding Faculty}"/>
-              <DataGridTextColumn Header="Дата рождения" Binding="{Binding BirthDate}"/>
-              <DataGridTextColumn Header="Возраст" Binding="{Binding Age}" Width="75"/>
-              <DataGridTextColumn Header="Контрольная дата" Binding="{Binding DueDate}"/>
+              <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="ФИО" Binding="{Binding FullName}" Width="2*"/>
+              <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Группа" Binding="{Binding Group}"/>
+              <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Факультет" Binding="{Binding Faculty}"/>
+              <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Дата рождения" Binding="{Binding BirthDate}"/>
+              <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Возраст" Binding="{Binding Age}" Width="75"/>
+              <DataGridTextColumn ElementStyle="{StaticResource CenteredDataGridText}" Header="Контрольная дата" Binding="{Binding DueDate}"/>
               <DataGridTemplateColumn Header="Состояние" Width="2*">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate>
