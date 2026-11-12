@@ -16,12 +16,15 @@ public sealed class JsonDatabaseService
 
     private string BackupsPath => Path.Combine(_directory, "backups");
     private string StudentsPath => Path.Combine(_directory, "students.json");
+    private string HistoryPath => Path.Combine(_directory, "check-history.json");
     private string SettingsPath => Path.Combine(_directory, "settings.json");
 
     public JsonDatabaseService() => Directory.CreateDirectory(_directory);
 
     public List<Student> LoadStudents() => Read<List<Student>>(StudentsPath) ?? [];
     public AppSettings LoadSettings() => Read<AppSettings>(SettingsPath) ?? new();
+    public List<CheckHistoryEntry> LoadHistory() => Read<List<CheckHistoryEntry>>(HistoryPath) ?? [];
+    public void SaveHistory(IReadOnlyCollection<CheckHistoryEntry> history) => Write(HistoryPath, history);
 
     public void SaveStudents(IReadOnlyCollection<Student> students) =>
         Write(StudentsPath, students);
@@ -96,3 +99,5 @@ public sealed class JsonDatabaseService
         }
     }
 }
+
+public sealed record CheckHistoryEntry(DateTime CheckedAt, int AttentionCount, bool Manual);
