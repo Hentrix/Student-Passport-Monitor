@@ -100,8 +100,8 @@ public sealed class ExcelImportService
         headerRow = -1;
         columns = new Dictionary<string, int>();
 
-        // Some exports use two-level merged headings. Find the row containing
-        // the student name, then resolve each field from the nearby header rows.
+        // В некоторых выгрузках используются двухуровневые объединённые заголовки. Ищем строку,
+        // содержащую ФИО студента, затем определяем поля по соседним строкам заголовков.
         for (int rowIndex = 0; rowIndex < Math.Min(table.Rows.Count, 100); rowIndex++)
         {
             var candidate = MatchColumns(table.Rows[rowIndex], table.Columns.Count);
@@ -110,8 +110,8 @@ public sealed class ExcelImportService
             if (!hasName)
                 continue;
 
-            // Supplement the name header with adjacent subheaders, but never
-            // use a data row as a header.
+            // Дополняем основной заголовок соседними подзаголовками, но никогда не
+            // используем строку данных в качестве заголовка.
             var previous = rowIndex > 0
                 ? MatchColumns(table.Rows[rowIndex - 1], table.Columns.Count)
                 : new Dictionary<string, int>();
