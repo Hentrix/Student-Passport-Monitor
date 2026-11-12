@@ -33,6 +33,12 @@ public partial class StudentEditorWindow : Window
             MessageBox.Show(this, "Укажите фамилию и имя."); return;
         }
 
+        if (!BirthDatePicker.CommitText() || !IssueDatePicker.CommitText() || !ReplacementDatePicker.CommitText())
+        {
+            MessageBox.Show(this, "Проверьте даты. Используйте формат ДД.ММ.ГГГГ.", "Некорректная дата");
+            return;
+        }
+
         Result = new Student
         {
             Id = _original?.Id ?? Guid.NewGuid(),
