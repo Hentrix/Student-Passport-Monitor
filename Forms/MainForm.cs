@@ -17,6 +17,11 @@ public partial class MainForm : Form
     public MainForm()
     {
         InitializeComponent();
+        // Исправляем размеры таблиц после первой компоновки вкладок WinForms.
+        tabStudents.Resize += (_, _) => UpdateTableLayout();
+        tabNotifications.Resize += (_, _) => UpdateTableLayout();
+        tabs.SelectedIndexChanged += (_, _) => UpdateTableLayout();
+        Shown += (_, _) => UpdateTableLayout();
         string version = typeof(MainForm).Assembly.GetName().Version?.ToString(3) ?? "dev";
         Text = $"Student Passport Monitor v{version}";
         // Берём иконку непосредственно из EXE: она же используется в панели задач и трее.
@@ -113,6 +118,30 @@ public partial class MainForm : Form
             _ => SortOrder.None
         };
         UpdateSelectedStudent();
+    }
+
+
+    private void UpdateTableLayout()
+    {
+        if (tabStudents.ClientSize.Width > 0 && tabStudents.ClientSize.Height > 0)
+        {
+            int width = Math.Max(300, tabStudents.ClientSize.Width - 44);
+            int bottom = tabStudents.ClientSize.Height;
+            replacementPanel.SetBounds(22, Math.Max(170, bottom - 72), width, 55);
+            dgvStudents.SetBounds(22, 110, width,
+                Math.Max(80, replacementPanel.Top - 122));
+        }
+
+        if (tabNotifications.ClientSize.Width > 0 && tabNotifications.ClientSize.Height > 0)
+        {
+            int width = Math.Max(300, tabNotifications.ClientSize.Width - 44);
+            int bottom = tabNotifications.ClientSize.Height;
+            int historyHeight = Math.Min(180, Math.Max(90, bottom / 4));
+            lstCheckHistory.SetBounds(22, Math.Max(210, bottom - historyHeight - 20),
+                width, historyHeight);
+            dgvNotifications.SetBounds(22, 108, width,
+                Math.Max(80, lstCheckHistory.Top - 120));
+        }
     }
 
     private void RenderNotifications()
