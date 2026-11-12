@@ -136,15 +136,11 @@ public sealed class StudentMonitorController
         IReadOnlyList<Student> Students, int MissingBirthDates, int MissingPassportNumbers,
         int DuplicateRows, int ExistingMatches, int NewStudents);
 
-    private static string ImportKey(Student student) =>
-        string.Join("|", new[] { student.LastName, student.FirstName, student.MiddleName, student.Group }
-            .Select(value => (value ?? "").Trim().ToUpperInvariant()));
-
     public ImportPreview PreviewImport(string filePath)
     {
         List<Student> imported = _excel.Import(filePath);
-        var existing = _students.Select(ImportKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var distinct = imported.Select(ImportKey).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var existing = _students.Select(StudentMergeService.GetKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var distinct = imported.Select(StudentMergeService.GetKey).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         return new ImportPreview(imported,
             imported.Count(s => s.BirthDate is null),
             imported.Count(s => string.IsNullOrWhiteSpace(s.PassportNumber)),
@@ -159,9 +155,11 @@ public sealed class StudentMonitorController
         if (preview.Students.Count == 0)
             throw new InvalidOperationException("Список для импорта пуст.");
 
+        // И при полной замене, и при объединении сохраняем одну запись на студента.
+        List<Student> unique = StudentMergeService.RemoveDuplicates(preview.Students);
         List<Student> updated = replace
-            ? preview.Students.ToList()
-            : _merger.Merge(_students, preview.Students);
+            ? unique
+            : _merger.Merge(_students, unique);
         _storage.CreateBackup();
         _storage.SaveStudents(updated);
         _students = updated;
