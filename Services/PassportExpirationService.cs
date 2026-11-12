@@ -2,11 +2,16 @@ using StudentPassportMonitor.Models;
 
 namespace StudentPassportMonitor.Services;
 
+/// <summary>
+/// Information-only monitoring of passport replacement milestones.
+/// An age milestone is not proof that a passport is legally invalid.
+/// </summary>
 public enum PassportAlertState
 {
     Planned,
     Upcoming,
-    ReviewRequired
+    ReviewRequired,
+    ConfirmationRequired
 }
 
 public sealed record PassportAlert(
@@ -19,8 +24,9 @@ public sealed record PassportAlert(
     public string State => Status switch
     {
         PassportAlertState.Planned => "Запланировано",
-        PassportAlertState.Upcoming => "Скоро",
-        _ => "Нужна проверка документа"
+        PassportAlertState.Upcoming => $"Скоро {MilestoneAge} лет",
+        PassportAlertState.ConfirmationRequired => "Рубеж наступил — проверьте замену",
+        _ => "Требуется проверка паспорта"
     };
 }
 
@@ -34,24 +40,36 @@ public sealed class PassportExpirationService
         if (student.BirthDate is not { } birthDate)
             return null;
 
+        DateTime? documentedIssue = LatestKnownIssue(student);
         foreach (int age in MilestoneAges)
         {
             DateTime milestone = birthDate.Date.AddYears(age);
-            if (student.LastPassportReplacementDate is { } replacement &&
-                replacement.Date >= milestone)
+            if (documentedIssue is { } issue && issue.Date >= milestone)
                 continue;
 
-            int daysRemaining = (milestone - today.Date).Days;
-            PassportAlertState status = daysRemaining < 0
-                ? PassportAlertState.ReviewRequired
-                : daysRemaining <= warningDays
+            int days = (milestone - today.Date).Days;
+            PassportAlertState state = days > warningDays
+                ? PassportAlertState.Planned
+                : days > 0
                     ? PassportAlertState.Upcoming
-                    : PassportAlertState.Planned;
+                    : days >= -90
+                        ? PassportAlertState.ConfirmationRequired
+                        : PassportAlertState.ReviewRequired;
 
-            return new PassportAlert(student, age, milestone, daysRemaining, status);
+            return new PassportAlert(student, age, milestone, days, state);
         }
 
         return null;
+    }
+
+    private static DateTime? LatestKnownIssue(Student student)
+    {
+        DateTime? issued = student.IssueDate?.Date;
+        DateTime? replaced = student.LastPassportReplacementDate?.Date;
+
+        if (issued is null) return replaced;
+        if (replaced is null) return issued;
+        return issued > replaced ? issued : replaced;
     }
 
     public IReadOnlyList<PassportAlert> GetAlerts(
