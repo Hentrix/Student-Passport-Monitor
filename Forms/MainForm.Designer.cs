@@ -116,15 +116,17 @@ partial class MainForm
         dgvStudents.ReadOnly = true;
         dgvStudents.MultiSelect = false;
         dgvStudents.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-        dgvStudents.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        dgvStudents.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+        dgvStudents.ScrollBars = ScrollBars.Both;
         dgvStudents.RowHeadersVisible = false;
         dgvStudents.BackgroundColor = Color.White;
         dgvStudents.BorderStyle = BorderStyle.None;
         dgvStudents.SelectionChanged += dgvStudents_SelectionChanged;
         foreach (var header in new[] { "ФИО", "Группа", "Факультет", "Дата рождения", "Паспорт №", "Возраст", "Контрольная дата", "Состояние" })
             dgvStudents.Columns.Add(header, header);
-        dgvStudents.Columns[0].FillWeight = 155;
-        dgvStudents.Columns[4].FillWeight = 90;
+        int[] widths = { 225, 110, 160, 125, 140, 75, 140, 200 };
+        for (int i = 0; i < dgvStudents.Columns.Count; i++)
+            dgvStudents.Columns[i].Width = widths[i];
 
         var replacementPanel = new Panel { Location = new Point(22, 578), Size = new Size(1090, 55), Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right, BackColor = Color.FromArgb(246, 248, 251) };
         lblSelectedStudent.Text = "Выберите студента";
@@ -142,12 +144,34 @@ partial class MainForm
 
         tabSettings.BackColor = Color.White;
         var settingsTitle = new Label { Text = "Параметры мониторинга", Font = new Font("Segoe UI", 18F, FontStyle.Bold), AutoSize = true, Location = new Point(28, 28) };
-        var warningLabel = new Label { Text = "Предупреждать за (дней):", AutoSize = true, Location = new Point(34, 100) };
-        nudWarningDays.Location = new Point(250, 94);
+        var warningLabel = new Label
+        {
+            Text = "Предупреждать за (дней):",
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(0, 0, 18, 0)
+        };
+        var warningLayout = new TableLayoutPanel
+        {
+            Location = new Point(34, 92),
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 2,
+            RowCount = 1,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty
+        };
+        warningLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        warningLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        warningLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         nudWarningDays.Minimum = 1;
         nudWarningDays.Maximum = 730;
         nudWarningDays.Value = 90;
-        nudWarningDays.Size = new Size(100, 28);
+        nudWarningDays.Width = 110;
+        nudWarningDays.Margin = Padding.Empty;
+        nudWarningDays.Anchor = AnchorStyles.Left;
+        warningLayout.Controls.Add(warningLabel, 0, 0);
+        warningLayout.Controls.Add(nudWarningDays, 1, 0);
         chkStartup.Text = "Запускать вместе с Windows";
         chkStartup.AutoSize = true;
         chkStartup.Location = new Point(34, 150);
@@ -156,7 +180,7 @@ partial class MainForm
         btnSaveSettings.Size = new Size(190, 38);
         btnSaveSettings.Click += btnSaveSettings_Click;
         var note = new Label { Text = "Приложение проверяет даты рождения при работе в фоне (в системном трее).\nВозрастные рубежи — напоминание проверить документ, а не подтверждение просрочки.", AutoSize = true, Location = new Point(34, 280), ForeColor = Color.DimGray };
-        tabSettings.Controls.AddRange(new Control[] { settingsTitle, warningLabel, nudWarningDays, chkStartup, btnSaveSettings, note });
+        tabSettings.Controls.AddRange(new Control[] { settingsTitle, warningLayout, chkStartup, btnSaveSettings, note });
 
         trayMenu.Items.AddRange(new ToolStripItem[] { trayOpen, trayExit });
         trayOpen.Click += trayOpen_Click;
