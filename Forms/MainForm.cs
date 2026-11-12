@@ -19,6 +19,10 @@ public partial class MainForm : Form
         InitializeComponent();
         string version = typeof(MainForm).Assembly.GetName().Version?.ToString(3) ?? "dev";
         Text = $"Student Passport Monitor v{version}";
+        // Берём иконку непосредственно из EXE: она же используется в панели задач и трее.
+        Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath)
+            ?? SystemIcons.Application;
+        trayIcon.Icon = Icon;
 
         // Не обращаемся к файлам, реестру и таймерам во время отображения формы в конструкторе Visual Studio.
         if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
