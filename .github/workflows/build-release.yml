@@ -1,0 +1,97 @@
+name: Build, test and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run unit tests
+        run: dotnet test tests/StudentPassportMonitor.Tests/StudentPassportMonitor.Tests.csproj --configuration Release
+
+  build:
+    name: Windows build and installer
+    runs-on: windows-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify SemVer tag matches project
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $props = [xml](Get-Content Directory.Build.props)
+          $version = $props.Project.PropertyGroup.VersionPrefix
+          if ($tag -cne "v$version") {
+            throw "Tag $tag does not match Directory.Build.props version $version"
+          }
+          if ($version -cnotmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$') {
+            throw "Version must be MAJOR.MINOR.PATCH"
+          }
+      - name: Restore and build
+        run: dotnet build StudentPassportMonitor.csproj --configuration Release -p:Platform=x64
+      - name: Publish self-contained win-x64
+        shell: pwsh
+        run: |
+          dotnet publish StudentPassportMonitor.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:Platform=x64 --output artifacts/publish
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $props = [xml](Get-Content Directory.Build.props)
+          $version = $props.Project.PropertyGroup.VersionPrefix
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) { throw "Inno Setup compiler not found: $iscc" }
+          & $iscc "/DAppVersion=$version" "/DPublishDir=$((Resolve-Path artifacts/publish).Path)" "/DOutputDir=$((Join-Path $PWD 'artifacts/installer'))" installer/StudentPassportMonitor.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem artifacts/installer/*.exe | Get-FileHash -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash)  $([IO.Path]::GetFileName($_.Path))" } |
+            Set-Content artifacts/installer/SHA256SUMS.txt
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-passport-monitor-installer
+          path: |
+            artifacts/installer/*.exe
+            artifacts/installer/SHA256SUMS.txt
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: student-passport-monitor-installer
+          path: release
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*.exe
+            release/SHA256SUMS.txt
+          generate_release_notes: true
+          fail_on_unmatched_files: true
