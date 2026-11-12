@@ -51,11 +51,6 @@ public partial class MainWindow : Window
             e.Cancel = true;
             Hide();
         };
-        Closed += (_, _) =>
-        {
-            _timer.Stop();
-            _tray.Dispose();
-        };
         _timer = new System.Windows.Threading.DispatcherTimer
         {
             Interval = TimeSpan.FromMinutes(1)
@@ -65,6 +60,11 @@ public partial class MainWindow : Window
             if (_lastObservedDate == DateTime.Today) return;
             _lastObservedDate = DateTime.Today;
             CheckDaily(false);
+        };
+        Closed += (_, _) =>
+        {
+            _timer.Stop();
+            _tray.Dispose();
         };
         _timer.Start();
         RefreshAll();
