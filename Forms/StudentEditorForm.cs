@@ -8,6 +8,7 @@ public sealed class StudentEditorForm : Form
 {
     private readonly Dictionary<string, TextBox> _fields = new();
     private readonly Student _original;
+    private readonly ComboBox _statusBox = new();
 
     public Student? Result { get; private set; }
 
@@ -41,7 +42,7 @@ public sealed class StudentEditorForm : Form
         AddField(layout, "Кем выдан", "IssuedBy", _original.IssuedBy);
         AddField(layout, "Дата выдачи", "IssueDate", Format(_original.IssueDate));
         AddField(layout, "Дата замены", "ReplacementDate", Format(_original.LastPassportReplacementDate));
-        AddField(layout, "Статус", "Status", _original.Status);
+        AddStatusField(layout, _original.Status);
 
         var buttons = new FlowLayoutPanel
         {
@@ -84,6 +85,33 @@ public sealed class StudentEditorForm : Form
         layout.Controls.Add(field, 1, row);
     }
 
+    private void AddStatusField(TableLayoutPanel layout, string current)
+    {
+        int row = layout.RowCount++;
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 47));
+        layout.Controls.Add(new Label
+        {
+            Text = "Статус",
+            AutoSize = true,
+            Anchor = AnchorStyles.Left
+        }, 0, row);
+
+        _statusBox.Name = "cmbStudentStatus";
+        _statusBox.DropDownStyle = ComboBoxStyle.DropDownList;
+        _statusBox.Dock = DockStyle.Fill;
+        _statusBox.Margin = new Padding(4, 5, 4, 8);
+        _statusBox.Items.AddRange(new object[]
+        {
+            "Учащийся", "Академический отпуск", "Отчислен", "Выпускник"
+        });
+        // Preserve values from previously imported spreadsheets.
+        if (!string.IsNullOrWhiteSpace(current) && !_statusBox.Items.Contains(current))
+            _statusBox.Items.Add(current);
+        _statusBox.SelectedItem = string.IsNullOrWhiteSpace(current)
+            ? "Учащийся" : current;
+        layout.Controls.Add(_statusBox, 1, row);
+    }
+
     private static string Format(DateTime? value) => value?.ToString("dd.MM.yyyy") ?? "";
 
     private DateTime? ReadDate(string key)
@@ -114,7 +142,7 @@ public sealed class StudentEditorForm : Form
                 IssuedBy = Get("IssuedBy"),
                 IssueDate = ReadDate("IssueDate"),
                 LastPassportReplacementDate = ReadDate("ReplacementDate"),
-                Status = Get("Status")
+                Status = _statusBox.SelectedItem?.ToString() ?? ""
             };
             if (string.IsNullOrWhiteSpace(Result.LastName) ||
                 string.IsNullOrWhiteSpace(Result.FirstName))
