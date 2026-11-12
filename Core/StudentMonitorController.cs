@@ -252,7 +252,7 @@ public sealed class StudentMonitorController
             history.Add(new CheckHistoryEntry(DateTime.Now, alerts.Length, force));
             _storage.SaveHistory(history.TakeLast(200).ToArray());
         }
-        catch (IOException) { /* Check history must not prevent notifications. */ }
+        catch (IOException) { /* Ошибка записи истории не должна препятствовать показу уведомлений. */ }
         return alerts;
     }
 }
