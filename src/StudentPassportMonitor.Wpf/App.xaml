@@ -169,7 +169,7 @@
               <Trigger Property="IsMouseOver" Value="True">
                 <Setter TargetName="MonthBackground" Property="Background" Value="#45406C"/>
               </Trigger>
-              <Trigger Property="IsSelected" Value="True">
+              <Trigger Property="IsFocused" Value="True">
                 <Setter TargetName="MonthBackground" Property="Background" Value="{StaticResource AccentBrush}"/>
               </Trigger>
               <Trigger Property="IsEnabled" Value="False">
