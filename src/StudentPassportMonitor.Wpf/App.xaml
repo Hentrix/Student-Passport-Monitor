@@ -10,6 +10,71 @@
     <SolidColorBrush x:Key="TextBrush" Color="#F4F3FA"/>
     <SolidColorBrush x:Key="MutedBrush" Color="#A2A3B5"/>
     <SolidColorBrush x:Key="AccentBrush" Color="#6855C7"/>
+    <SolidColorBrush x:Key="InputBrush" Color="#222434"/>
+    <SolidColorBrush x:Key="HeaderBrush" Color="#282A3A"/>
+    <SolidColorBrush x:Key="SelectionBrush" Color="#494077"/>
+    <Style TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+    </Style>
+    <Style TargetType="ComboBoxItem">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+      <Setter Property="Padding" Value="10,8"/>
+      <Style.Triggers>
+        <Trigger Property="IsHighlighted" Value="True">
+          <Setter Property="Background" Value="{StaticResource SelectionBrush}"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style TargetType="ComboBox">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+      <Setter Property="MinHeight" Value="37"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Padding" Value="8,5"/>
+    </Style>
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="FontSize" Value="14"/>
+    </Style>
+    <Style TargetType="DatePicker">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+      <Setter Property="MinHeight" Value="37"/>
+    </Style>
+    <Style TargetType="DataGridColumnHeader">
+      <Setter Property="Background" Value="{StaticResource HeaderBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Padding" Value="12,11"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+      <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    </Style>
+    <Style TargetType="DataGridCell">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="Padding" Value="10,7"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="{StaticResource SelectionBrush}"/>
+          <Setter Property="Foreground" Value="White"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style TargetType="DataGridRow">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="MinHeight" Value="39"/>
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="{StaticResource SelectionBrush}"/>
+        </Trigger>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#303148"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
     <Style TargetType="Window">
       <Setter Property="Background" Value="{StaticResource WindowBrush}"/>
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -48,6 +113,8 @@
       <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
       <Setter Property="Padding" Value="10,8"/>
       <Setter Property="CaretBrush" Value="White"/>
+      <Setter Property="MinHeight" Value="37"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
     <Style TargetType="DataGrid">
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
@@ -62,6 +129,9 @@
       <Setter Property="IsReadOnly" Value="True"/>
       <Setter Property="AutoGenerateColumns" Value="False"/>
       <Setter Property="ColumnWidth" Value="*"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="RowHeight" Value="39"/>
+      <Setter Property="EnableRowVirtualization" Value="True"/>
     </Style>
   </Application.Resources>
 </Application>
