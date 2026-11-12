@@ -22,6 +22,7 @@ partial class MainForm
     private DataGridView dgvStudents = null!;
     private Button btnImport = null!;
     private Button btnRefresh = null!;
+    private Button btnExport = null!;
     private Button btnAddStudent = null!;
     private Button btnEditStudent = null!;
     private Button btnDeleteStudent = null!;
@@ -87,6 +88,7 @@ partial class MainForm
         dgvStudents = new DataGridView();
         btnImport = new Button();
         btnRefresh = new Button();
+        btnExport = new Button();
         btnAddStudent = new Button();
         btnEditStudent = new Button();
         btnDeleteStudent = new Button();
@@ -252,6 +254,11 @@ partial class MainForm
         btnDeleteStudent.Location = new Point(228, 65);
         btnDeleteStudent.Size = new Size(95, 34);
         btnDeleteStudent.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        btnExport.Name = "btnExport";
+        btnExport.Text = "Экспорт Excel";
+        btnExport.Location = new Point(340, 65);
+        btnExport.Size = new Size(135, 34);
+        btnExport.Click += btnExport_Click;
         txtSearch.PlaceholderText = "Поиск по ФИО...";
         txtSearch.Location = new Point(280, 20);
         txtSearch.Size = new Size(240, 30);
@@ -343,7 +350,7 @@ partial class MainForm
         btnSaveReplacement.Location = new Point(645, 10);
         btnSaveReplacement.Size = new Size(190, 32);
         replacementPanel.Controls.AddRange(new Control[] { lblSelectedStudent, txtReplacementDate, btnSaveReplacement });
-        tabStudents.Controls.AddRange(new Control[] { btnImport, btnRefresh, txtSearch, cmbGroup, chkAttentionOnly, btnAddStudent, btnEditStudent, btnDeleteStudent, dgvStudents, replacementPanel });
+        tabStudents.Controls.AddRange(new Control[] { btnImport, btnRefresh, txtSearch, cmbGroup, chkAttentionOnly, btnAddStudent, btnEditStudent, btnDeleteStudent, btnExport, dgvStudents, replacementPanel });
         settingsTitle.Text = "Параметры мониторинга";
         settingsTitle.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
         settingsTitle.AutoSize = true;
