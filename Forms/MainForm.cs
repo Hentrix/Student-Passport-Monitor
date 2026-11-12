@@ -17,6 +17,8 @@ public partial class MainForm : Form
     public MainForm()
     {
         InitializeComponent();
+        string version = typeof(MainForm).Assembly.GetName().Version?.ToString(3) ?? "dev";
+        Text = $"Student Passport Monitor v{version}";
 
         // Never access files, registry or timers while Visual Studio renders the form.
         if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
