@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>StudentPassportMonitor</RootNamespace>
     <AssemblyName>StudentPassportMonitor</AssemblyName>
+    <ApplicationIcon>assets/student-passport-monitor.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="tests/**/*.cs" />
@@ -16,4 +17,9 @@
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
   </ItemGroup>
+  <!-- Перед сборкой Windows создаём ICO из исходных векторных форм. -->
+  <Target Name="GenerateApplicationIcon" BeforeTargets="PrepareForBuild"
+          Condition="'$(OS)' == 'Windows_NT'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\scripts\generate-icon.ps1&quot; -Output &quot;$(MSBuildProjectDirectory)\assets\student-passport-monitor.ico&quot;" />
+  </Target>
 </Project>
