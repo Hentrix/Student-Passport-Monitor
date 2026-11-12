@@ -23,8 +23,7 @@ public sealed class PassportExpirationService
             return new PassportAlert(student, age, due, days, state);
         }
 
-        return new PassportAlert(student, 45, birth.Date.AddYears(45),
-            (birth.Date.AddYears(45) - today.Date).Days, "Нужна проверка документа");
+        return null;
     }
 
     public IReadOnlyList<PassportAlert> GetAlerts(IEnumerable<Student> students, DateTime today, int warningDays) =>
