@@ -12,6 +12,8 @@ namespace StudentPassportMonitor.Wpf;
 public partial class MainWindow : Window
 {
     private readonly StudentMonitorController _controller;
+    private readonly TrayService _tray;
+    private bool _exitRequested;
     private readonly ObservableCollection<StudentRow> _students = [];
     private readonly ObservableCollection<AttentionItem> _attention = [];
     private readonly ObservableCollection<HistoryItem> _history = [];
@@ -31,6 +33,29 @@ public partial class MainWindow : Window
         HistoryGrid.ItemsSource = _history;
         WarningDaysBox.Text = _controller.Settings.WarningDays.ToString(CultureInfo.InvariantCulture);
         StartupCheck.IsChecked = _controller.StartupEnabled;
+        _tray = new TrayService();
+        _tray.OpenRequested += () => Dispatcher.Invoke(BringToFront);
+        _tray.AttentionRequested += () => Dispatcher.Invoke(() =>
+        {
+            BringToFront();
+            ShowPage(NotificationsPage, "Уведомления");
+        });
+        _tray.ExitRequested += () => Dispatcher.Invoke(() =>
+        {
+            _exitRequested = true;
+            Close();
+        });
+        Closing += (_, e) =>
+        {
+            if (_exitRequested) return;
+            e.Cancel = true;
+            Hide();
+        };
+        Closed += (_, _) =>
+        {
+            _timer.Stop();
+            _tray.Dispose();
+        };
         _timer = new System.Windows.Threading.DispatcherTimer
         {
             Interval = TimeSpan.FromMinutes(1)
@@ -44,6 +69,13 @@ public partial class MainWindow : Window
         _timer.Start();
         RefreshAll();
         CheckDaily(false);
+    }
+
+    private void BringToFront()
+    {
+        Show();
+        WindowState = WindowState.Normal;
+        Activate();
     }
 
     private void ShowPage(Grid page, string title)
@@ -150,6 +182,11 @@ public partial class MainWindow : Window
         {
             IReadOnlyList<PassportAlert> alerts = _controller.CheckDaily(DateTime.Today, force);
             RefreshAll();
+            if (!force && alerts.Count > 0)
+            {
+                int upcoming = alerts.Count(a => a.Status == PassportAlertState.Upcoming);
+                _tray.Notify(upcoming, alerts.Count - upcoming);
+            }
             if (force)
                 MessageBox.Show(this, $"Проверка завершена. Требуют внимания: {alerts.Count}.",
                     "Мониторинг", MessageBoxButton.OK, MessageBoxImage.Information);
