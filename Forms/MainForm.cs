@@ -197,28 +197,28 @@ public partial class MainForm : Form
     private void OpenStudentEditor(Student? student)
     {
         if (_controller is null) return;
-        using var editor = new StudentEditorForm(student);
-        while (editor.ShowDialog(this) == DialogResult.OK && editor.Result is { } updated)
+        Student? draft = student;
+
+        while (true)
         {
+            using var editor = new StudentEditorForm(draft);
+            if (editor.ShowDialog(this) != DialogResult.OK || editor.Result is not { } updated)
+                return;
+
             try
             {
                 _controller.SaveStudent(updated);
                 RefreshView();
                 return;
             }
+            catch (ArgumentException ex)
+            {
+                ShowError("Проверьте данные студента", ex);
+                draft = updated;
+            }
             catch (Exception ex)
             {
                 ShowError("Не удалось сохранить студента", ex);
-                // Reopen the editor without discarding the entered values.
-                using var retry = new StudentEditorForm(updated);
-                if (retry.ShowDialog(this) != DialogResult.OK || retry.Result is not { } corrected)
-                    return;
-                try
-                {
-                    _controller.SaveStudent(corrected);
-                    RefreshView();
-                }
-                catch (Exception retryError) { ShowError("Не удалось сохранить студента", retryError); }
                 return;
             }
         }
