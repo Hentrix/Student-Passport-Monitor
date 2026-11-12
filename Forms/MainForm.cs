@@ -47,6 +47,7 @@ public partial class MainForm : Form
         RebuildGroups();
         RenderDashboard();
         RenderStudents();
+        RenderNotifications();
     }
 
     private void RenderDashboard()
@@ -106,6 +107,78 @@ public partial class MainForm : Form
             _ => SortOrder.None
         };
         UpdateSelectedStudent();
+    }
+
+    private void RenderNotifications()
+    {
+        if (_controller is null) return;
+        Guid? selectedId = (dgvNotifications.CurrentRow?.Tag as Student)?.Id;
+        dgvNotifications.Rows.Clear();
+
+        foreach (PassportAlert alert in _controller.GetAttention(DateTime.Today))
+        {
+            Student student = alert.Student;
+            int rowIndex = dgvNotifications.Rows.Add(
+                student.FullName, student.Group,
+                alert.DueDate.ToString("dd.MM.yyyy"), alert.State,
+                student.LastReviewedAt?.ToString("dd.MM.yyyy HH:mm") ?? "Не проверялся");
+            var row = dgvNotifications.Rows[rowIndex];
+            row.Tag = student;
+            row.DefaultCellStyle.BackColor =
+                alert.Status == PassportAlertState.ReviewRequired
+                    ? Color.MistyRose : Color.FromArgb(255, 224, 178);
+            if (student.Id == selectedId)
+                row.Selected = true;
+        }
+
+        lstCheckHistory.Items.Clear();
+        lstCheckHistory.Items.Add("История запусков проверки:");
+        foreach (CheckHistoryEntry entry in _controller.GetHistory())
+            lstCheckHistory.Items.Add(
+                $"{entry.CheckedAt:dd.MM.yyyy HH:mm} — " +
+                $"{(entry.Manual ? "Вручную" : "Автоматически")}, " +
+                $"требуют внимания: {entry.AttentionCount}");
+    }
+
+    private void btnRefreshAttention_Click(object? sender, EventArgs e) => RenderNotifications();
+
+    private void btnOpenAttentionStudent_Click(object? sender, EventArgs e)
+    {
+        if (dgvNotifications.CurrentRow?.Tag is Student student)
+            OpenStudentEditor(student);
+        else
+            MessageBox.Show(this, "Выберите студента из списка.", "Уведомления",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+
+    private void dgvNotifications_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex >= 0 && dgvNotifications.Rows[e.RowIndex].Tag is Student student)
+            OpenStudentEditor(student);
+    }
+
+    private void btnMarkReviewed_Click(object? sender, EventArgs e)
+    {
+        if (_controller is null || dgvNotifications.CurrentRow?.Tag is not Student student)
+        {
+            MessageBox.Show(this, "Выберите студента из списка.", "Уведомления",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if (MessageBox.Show(this,
+                $"Отметить проверку сведений студента «{student.FullName}»?\n" +
+                "Это не подтверждает замену паспорта и не убирает предупреждение.",
+                "Подтверждение проверки", MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question) != DialogResult.Yes)
+            return;
+
+        try
+        {
+            _controller.MarkReviewed(student.Id);
+            RenderNotifications();
+        }
+        catch (Exception ex) { ShowError("Не удалось отметить проверку", ex); }
     }
 
     private void dgvStudents_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
@@ -169,6 +242,7 @@ public partial class MainForm : Form
 
             RenderDashboard();
             RenderStudents();
+            RenderNotifications();
             if (force)
                 MessageBox.Show(this, $"Проверка завершена. Требуют внимания: {alerts.Count}.",
                     "Student Passport Monitor", MessageBoxButtons.OK, MessageBoxIcon.Information);
