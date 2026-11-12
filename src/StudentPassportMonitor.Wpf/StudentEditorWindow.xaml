@@ -1,0 +1,48 @@
+<Window x:Class="StudentPassportMonitor.Wpf.StudentEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Карточка студента" Width="600" Height="740" MinHeight="600"
+        WindowStartupLocation="CenterOwner">
+  <DockPanel Margin="25">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Margin="0,18,0,0">
+      <Button Content="Отмена" Width="110" IsCancel="True"/>
+      <Button Content="Сохранить" Width="130" Background="{StaticResource AccentBrush}"
+              Click="Save_Click" IsDefault="True"/>
+    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel>
+        <TextBlock Text="Данные студента" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,20"/>
+        <TextBlock Text="Фамилия *"/>
+        <TextBox x:Name="LastNameBox" Margin="0,5,0,12"/>
+        <TextBlock Text="Имя *"/>
+        <TextBox x:Name="FirstNameBox" Margin="0,5,0,12"/>
+        <TextBlock Text="Отчество"/>
+        <TextBox x:Name="MiddleNameBox" Margin="0,5,0,12"/>
+        <TextBlock Text="Группа"/>
+        <TextBox x:Name="GroupBox" Margin="0,5,0,12"/>
+        <TextBlock Text="Факультет"/>
+        <TextBox x:Name="FacultyBox" Margin="0,5,0,12"/>
+        <TextBlock Text="Дата рождения"/>
+        <DatePicker x:Name="BirthDatePicker" Margin="0,5,0,12"/>
+        <TextBlock Text="Статус обучения"/>
+        <ComboBox x:Name="StatusBox" IsEditable="True" Margin="0,5,0,12">
+          <ComboBoxItem Content="Учащийся"/>
+          <ComboBoxItem Content="Академический отпуск"/>
+          <ComboBoxItem Content="Отчислен"/>
+          <ComboBoxItem Content="Выпускник"/>
+        </ComboBox>
+        <Separator Margin="0,12"/>
+        <TextBlock Text="Паспортные сведения" FontSize="19" FontWeight="SemiBold" Margin="0,0,0,15"/>
+        <TextBlock Text="Серия и номер"/>
+        <TextBox x:Name="PassportNumberBox" Margin="0,5,0,12"/>
+        <TextBlock Text="Кем выдан"/>
+        <TextBox x:Name="IssuedByBox" Margin="0,5,0,12"/>
+        <TextBlock Text="Дата выдачи"/>
+        <DatePicker x:Name="IssueDatePicker" Margin="0,5,0,12"/>
+        <TextBlock Text="Дата последней замены"/>
+        <DatePicker x:Name="ReplacementDatePicker" Margin="0,5,0,12"/>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>
