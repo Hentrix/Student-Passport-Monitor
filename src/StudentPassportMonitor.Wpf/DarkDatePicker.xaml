@@ -12,11 +12,12 @@
              LostKeyboardFocus="DateText_LostKeyboardFocus"/>
     <ToggleButton x:Name="OpenButton" Grid.Column="1" Content="▦" Foreground="{DynamicResource TextBrush}"
                   Background="{DynamicResource InputBrush}" BorderThickness="0"
+                  FocusVisualStyle="{x:Null}"
                   Checked="OpenButton_Checked"/>
    </Grid>
   </Border>
-  <Popup x:Name="CalendarPopup" PlacementTarget="{Binding ElementName=OpenButton}"
-         Placement="Bottom" AllowsTransparency="True" StaysOpen="False"
+  <Popup x:Name="CalendarPopup" PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=UserControl}}"
+         Placement="Custom" HorizontalOffset="0" VerticalOffset="0" AllowsTransparency="True" StaysOpen="False"
          Opened="CalendarPopup_Opened" Closed="CalendarPopup_Closed">
    <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
            BorderThickness="1" CornerRadius="10" Padding="12">
