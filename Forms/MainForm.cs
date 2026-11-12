@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using StudentPassportMonitor.Application;
+using StudentPassportMonitor.Core;
 using StudentPassportMonitor.Models;
 using StudentPassportMonitor.Services;
 
