@@ -118,14 +118,72 @@
     </Style>
     <!-- Стандартный Calendar сохраняет корректную навигацию по годам и месяцам.
          Пока его системный светлый шаблон оставлен с контрастным тёмным текстом. -->
-    <Style TargetType="Calendar">
-      <Setter Property="Foreground" Value="#202335"/>
-      <Setter Property="Background" Value="#F5F6FA"/>
-      <Setter Property="BorderBrush" Value="#A4A6B6"/>
-    </Style>
+    <!-- Собственные кнопки дней и месяцев не используют системные светлые шаблоны. -->
     <Style TargetType="CalendarDayButton">
-      <Setter Property="Foreground" Value="#202335"/>
-      <Setter Property="Background" Value="#F5F6FA"/>
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+      <Setter Property="MinWidth" Value="29"/>
+      <Setter Property="MinHeight" Value="28"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CalendarDayButton">
+            <Border x:Name="DayBackground" Background="{TemplateBinding Background}" CornerRadius="5"
+                    Margin="1">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                TextElement.Foreground="{TemplateBinding Foreground}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="DayBackground" Property="Background" Value="#45406C"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="DayBackground" Property="Background" Value="{StaticResource AccentBrush}"/>
+                <Setter Property="Foreground" Value="White"/>
+              </Trigger>
+              <Trigger Property="IsToday" Value="True">
+                <Setter TargetName="DayBackground" Property="BorderBrush" Value="#B9A5FF"/>
+                <Setter TargetName="DayBackground" Property="BorderThickness" Value="1"/>
+              </Trigger>
+              <Trigger Property="IsInactive" Value="True">
+                <Setter Property="Foreground" Value="#77798D"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.3"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="CalendarButton">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CalendarButton">
+            <Border x:Name="MonthBackground" Background="{TemplateBinding Background}" CornerRadius="6" Margin="2">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                TextElement.Foreground="{TemplateBinding Foreground}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="MonthBackground" Property="Background" Value="#45406C"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="MonthBackground" Property="Background" Value="{StaticResource AccentBrush}"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.3"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="Calendar">
+      <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
     </Style>
     <Style TargetType="DatePicker">
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -150,10 +208,10 @@
                 <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True"
                        IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                        StaysOpen="False">
-                  <Border Background="#F5F6FA" BorderBrush="#A4A6B6"
+                  <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}"
                           BorderThickness="1" Padding="8" CornerRadius="8">
-                    <Calendar x:Name="PART_Calendar" Background="#F5F6FA"
-                              Foreground="#202335"/>
+                    <Calendar x:Name="PART_Calendar" Background="{StaticResource PanelBrush}"
+                              Foreground="{StaticResource TextBrush}"/>
                   </Border>
                 </Popup>
               </Grid>
