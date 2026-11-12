@@ -318,6 +318,89 @@ public partial class MainForm : Form
         catch (Exception ex) { ShowError("Ошибка удаления", ex); }
     }
 
+    private void btnExport_Click(object? sender, EventArgs e)
+    {
+        if (_controller is null) return;
+
+        using var picker = new Form
+        {
+            Text = "Экспорт отчёта Excel",
+            StartPosition = FormStartPosition.CenterParent,
+            Size = new Size(470, 235),
+            MinimumSize = new Size(430, 220),
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            MaximizeBox = false,
+            MinimizeBox = false
+        };
+        var type = new ComboBox
+        {
+            Left = 18, Top = 20, Width = 410,
+            DropDownStyle = ComboBoxStyle.DropDownList
+        };
+        type.Items.AddRange(new object[]
+        {
+            "Все студенты",
+            "Требуют внимания",
+            "По группе",
+            "Неполные сведения"
+        });
+        type.SelectedIndex = 0;
+        var group = new ComboBox
+        {
+            Left = 18, Top = 65, Width = 410,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Enabled = false
+        };
+        foreach (string value in _controller.GetGroups()) group.Items.Add(value);
+        if (group.Items.Count > 0) group.SelectedIndex = 0;
+        type.SelectedIndexChanged += (_, _) => group.Enabled = type.SelectedIndex == 2;
+        var save = new Button
+        {
+            Text = "Сохранить .xlsx",
+            Left = 18, Top = 112, Width = 170, Height = 36,
+            DialogResult = DialogResult.OK
+        };
+        var cancel = new Button
+        {
+            Text = "Отмена",
+            Left = 205, Top = 112, Width = 115, Height = 36,
+            DialogResult = DialogResult.Cancel
+        };
+        picker.Controls.AddRange(new Control[] { type, group, save, cancel });
+        picker.AcceptButton = save;
+        picker.CancelButton = cancel;
+        if (picker.ShowDialog(this) != DialogResult.OK) return;
+
+        var reportType = (ExcelReportType)type.SelectedIndex;
+        if (reportType == ExcelReportType.ByGroup && group.SelectedItem is null)
+        {
+            MessageBox.Show(this, "Нет групп для экспорта.", "Экспорт",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        using var dialog = new SaveFileDialog
+        {
+            Title = "Сохранить отчёт",
+            Filter = "Excel (*.xlsx)|*.xlsx",
+            DefaultExt = "xlsx",
+            AddExtension = true,
+            FileName = $"passport-report-{DateTime.Now:yyyy-MM-dd}.xlsx",
+            OverwritePrompt = true
+        };
+        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+        try
+        {
+            int count = _controller.ExportReport(dialog.FileName, reportType,
+                group.SelectedItem?.ToString());
+            MessageBox.Show(this,
+                $"Отчёт сохранён. Строк: {count}.",
+                "Экспорт завершён", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex) { ShowError("Ошибка экспорта Excel", ex); }
+    }
+
     private void btnImport_Click(object? sender, EventArgs e)
     {
         if (_controller is null) return;
