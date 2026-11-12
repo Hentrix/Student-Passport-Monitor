@@ -19,6 +19,9 @@
     <Compile Include="../../Core/**/*.cs" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../../Models/**/*.cs" Link="Models/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../../Services/**/*.cs" Exclude="../../Services/ToastNotificationService.cs" Link="Services/%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- WinForms нужен только для NotifyIcon: не импортируем его типы глобально в WPF. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
     <Using Include="System.IO" />
   </ItemGroup>
   <Target Name="GenerateApplicationIcon" BeforeTargets="PrepareForBuild" Condition="'$(OS)' == 'Windows_NT'">
