@@ -31,6 +31,7 @@ public partial class DarkDatePicker : UserControl
         MonthSelector.ItemsSource = Russian.DateTimeFormat.MonthNames.Take(12).ToArray();
         YearSelector.ItemsSource = Enumerable.Range(1900, 201).ToArray();
         DateText.Text = "";
+        CalendarPopup.CustomPopupPlacementCallback = PlaceBelowField;
         UpdateSelectors();
         RenderDays();
     }
@@ -79,8 +80,16 @@ public partial class DarkDatePicker : UserControl
         if (CalendarPopup is not null) CalendarPopup.IsOpen = true;
     }
 
+    private static CustomPopupPlacement[] PlaceBelowField(Size popupSize, Size targetSize, Point offset)
+    {
+        // Только под полем, без альтернативного положения сверху.
+        return [new CustomPopupPlacement(new Point(0, targetSize.Height), PopupPrimaryAxis.Horizontal)];
+    }
+
     private void CalendarPopup_Opened(object sender, EventArgs e)
     {
+        if (SelectedDate is { } selected)
+            _visibleMonth = new DateTime(selected.Year, selected.Month, 1);
         UpdateSelectors();
         RenderDays();
     }
