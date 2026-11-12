@@ -16,9 +16,9 @@ public sealed class ExcelImportService
         ["MiddleName"] = ["отчество", "middle name"],
         ["Faculty"] = ["факультет", "отделение", "специальность", "faculty"],
         ["Group"] = ["группа", "учебная группа", "номер группы", "group"],
-        ["PassportNumber"] = ["паспорт", "номер паспорта", "серия и номер паспорта", "passport number"],
+        ["PassportNumber"] = ["номер паспорта", "паспорт", "серия и номер паспорта", "passport number"],
         ["IssuedBy"] = ["кем выдан", "issued by"],
-        ["IssueDate"] = ["дата выдачи", "issue date"],
+        ["IssueDate"] = ["дата выдачи", "дата выдачи паспорта", "issue date"],
         ["BirthDate"] = ["дата рождения", "день рождения", "дата рожд", "д р", "birth date", "birthday"],
         ["Status"] = ["статус", "status"]
     };
