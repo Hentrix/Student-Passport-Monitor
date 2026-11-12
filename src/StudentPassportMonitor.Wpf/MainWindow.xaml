@@ -122,8 +122,8 @@
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate>
                     <Border x:Name="StatusBadge" Background="#343748" CornerRadius="7"
-                            HorizontalAlignment="Left" Padding="10,5">
-                      <TextBlock Text="{Binding State}" FontSize="12" FontWeight="SemiBold"/>
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Padding="12,6" Margin="4,2">
+                      <TextBlock Text="{Binding State}" FontSize="12" FontWeight="SemiBold" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Border>
                     <DataTemplate.Triggers>
                       <DataTrigger Binding="{Binding State}" Value="Требуется проверка паспорта">
