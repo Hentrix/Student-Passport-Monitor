@@ -44,10 +44,10 @@ public sealed class StudentMergeService
             student.LastPassportReplacementDate = previous.LastPassportReplacementDate;
             student.LastReviewedAt = previous.LastReviewedAt;
             student.BirthDate ??= previous.BirthDate;
-            student.IssueDate ??= previous.IssueDate;
-            if (string.IsNullOrWhiteSpace(student.PassportNumber))
+            student.IssueDate = previous.IssueDate ?? student.IssueDate;
+            if (!string.IsNullOrWhiteSpace(previous.PassportNumber))
                 student.PassportNumber = previous.PassportNumber;
-            if (string.IsNullOrWhiteSpace(student.IssuedBy))
+            if (!string.IsNullOrWhiteSpace(previous.IssuedBy))
                 student.IssuedBy = previous.IssuedBy;
             if (string.IsNullOrWhiteSpace(student.Status))
                 student.Status = previous.Status;
