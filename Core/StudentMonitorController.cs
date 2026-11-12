@@ -114,6 +114,41 @@ public sealed class StudentMonitorController
         return imported.Count;
     }
 
+    public void SaveStudent(Student student)
+    {
+        ArgumentNullException.ThrowIfNull(student);
+        if (string.IsNullOrWhiteSpace(student.LastName) ||
+            string.IsNullOrWhiteSpace(student.FirstName))
+            throw new ArgumentException("Укажите фамилию и имя.");
+        if (student.BirthDate is { } birth &&
+            (birth.Date > DateTime.Today || birth.Year < 1900))
+            throw new ArgumentException("Проверьте дату рождения.");
+        if (student.IssueDate is { } issued && issued.Date > DateTime.Today)
+            throw new ArgumentException("Дата выдачи паспорта не может быть в будущем.");
+        if (student.LastPassportReplacementDate is { } replaced &&
+            (replaced.Date > DateTime.Today ||
+             (student.BirthDate is { } born && replaced.Date < born.Date)))
+            throw new ArgumentException("Проверьте дату замены паспорта.");
+
+        var updated = _students.ToList();
+        int index = updated.FindIndex(s => s.Id == student.Id);
+        if (index >= 0) updated[index] = student;
+        else updated.Add(student);
+
+        _storage.SaveStudents(updated);
+        _students = updated;
+    }
+
+    public void DeleteStudent(Guid studentId)
+    {
+        var updated = _students.Where(s => s.Id != studentId).ToList();
+        if (updated.Count == _students.Count)
+            throw new InvalidOperationException("Студент не найден.");
+
+        _storage.SaveStudents(updated);
+        _students = updated;
+    }
+
     public void SaveReplacement(Guid studentId, string text)
     {
         Student student = _students.FirstOrDefault(s => s.Id == studentId)
