@@ -8,7 +8,6 @@ public partial class MainForm : Form
     private readonly JsonDatabaseService _db = new();
     private readonly ExcelImportService _excel = new();
     private readonly PassportExpirationService _passport = new();
-    private readonly ToastNotificationService _toast = new();
     private readonly StartupService _startup = new();
     private readonly System.Windows.Forms.Timer _dailyTimer = new();
     private List<Student> _students = new();
@@ -77,7 +76,7 @@ public partial class MainForm : Form
             string when = alert.DaysRemaining < 0
                 ? $"контрольная дата {alert.DueDate:dd.MM.yyyy} уже прошла"
                 : $"до даты {alert.DueDate:dd.MM.yyyy} осталось {alert.DaysRemaining} дн.";
-            _toast.Show("Проверка паспорта", $"{alert.Student.FullName}: возрастной рубеж {alert.MilestoneAge} лет — {when}. Проверьте документ.");
+            trayIcon.ShowBalloonTip(5000, "Проверка паспорта", $"{alert.Student.FullName}: рубеж {alert.MilestoneAge} лет — {when}. Проверьте документ.", ToolTipIcon.Info);
         }
 
         _settings.LastDailyCheckDate = DateTime.Today;
