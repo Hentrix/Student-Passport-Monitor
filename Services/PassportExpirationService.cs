@@ -3,8 +3,8 @@ using StudentPassportMonitor.Models;
 namespace StudentPassportMonitor.Services;
 
 /// <summary>
-/// Information-only monitoring of passport replacement milestones.
-/// An age milestone is not proof that a passport is legally invalid.
+/// Информационный контроль возрастных рубежей замены паспорта.
+/// Достижение возрастного рубежа само по себе не доказывает недействительность паспорта.
 /// </summary>
 public enum PassportAlertState
 {
