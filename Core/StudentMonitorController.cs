@@ -53,7 +53,7 @@ public sealed class StudentMonitorController
         return new DashboardSummary(
             _students.Count,
             alerts.Count(a => a.Status == PassportAlertState.Upcoming),
-            alerts.Count(a => a.Status == PassportAlertState.ReviewRequired),
+            alerts.Count(a => a.Status is PassportAlertState.ReviewRequired or PassportAlertState.ConfirmationRequired),
             Settings.LastDailyCheckDate);
     }
 
@@ -67,7 +67,7 @@ public sealed class StudentMonitorController
 
         if (attentionOnly)
             matching = matching.Where(s => _passport.GetAlert(s, today, Settings.WarningDays)
-                is { Status: PassportAlertState.Upcoming or PassportAlertState.ReviewRequired });
+                is { Status: PassportAlertState.Upcoming or PassportAlertState.ReviewRequired or PassportAlertState.ConfirmationRequired });
 
         IOrderedEnumerable<Student> ordered = sort switch
         {
@@ -92,7 +92,7 @@ public sealed class StudentMonitorController
                            (today.Date < birth.AddYears(today.Year - birth.Year).Date ? 1 : 0)).ToString()
                         : "—",
                     alert?.DueDate.ToString("dd.MM.yyyy") ?? "—",
-                    alert?.State ?? (s.BirthDate is null ? "Нет даты рождения" : "Нет активных рубежей"),
+                    alert?.State ?? (s.BirthDate is null ? "Нет даты рождения" : "Замена подтверждена"),
                     alert?.Status);
             })
             .ToArray();
