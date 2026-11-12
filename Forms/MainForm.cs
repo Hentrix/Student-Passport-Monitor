@@ -20,7 +20,7 @@ public partial class MainForm : Form
         string version = typeof(MainForm).Assembly.GetName().Version?.ToString(3) ?? "dev";
         Text = $"Student Passport Monitor v{version}";
 
-        // Never access files, registry or timers while Visual Studio renders the form.
+        // Не обращаемся к файлам, реестру и таймерам во время отображения формы в конструкторе Visual Studio.
         if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
             return;
 
@@ -236,7 +236,7 @@ public partial class MainForm : Form
         try
         {
             IReadOnlyList<PassportAlert> alerts = _controller.CheckDaily(DateTime.Today, force);
-            // Windows balloon tips can replace each other: send a single summary.
+            // Системные уведомления могут перекрывать друг друга, поэтому показываем одно сводное сообщение.
             if (alerts.Count > 0)
                 trayIcon.ShowBalloonTip(5000, "Проверка паспортов",
                     $"Требуют внимания: {alerts.Count} студентов. Откройте приложение для подробностей.",
